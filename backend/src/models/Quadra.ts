@@ -2,6 +2,10 @@ import mongoose, { model, Schema } from 'mongoose';
 import reservaSchema from './Reserva';
 
 const quadraSchema = new mongoose.Schema({
+    id:{
+        type: String,
+        required: true
+    },
     modalidade:{
         type: String,
         enum: ['Campo de Futsal', 'Basquete', 'Volei', 'Campo de areia', 'Tenis'],
@@ -13,8 +17,12 @@ const quadraSchema = new mongoose.Schema({
         default: 'Disponível'
     },
     reservas: {
-        type: [reservaSchema],
+        type: [mongoose.Schema.Types.ObjectId],
         default: []
+    },
+    capacidade: {
+        type: Number,
+        required: true
     }
 });
 
