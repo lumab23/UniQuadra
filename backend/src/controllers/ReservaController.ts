@@ -1,49 +1,60 @@
-import { Request, Response } from 'express';
-
+import { RequestHandler } from 'express';
 import ReservaServices from '../services/ReservaServices';
 
 class ReservaController {
-    async criarReserva(req: Request, res: Response){
-        try{
+    criarReserva: RequestHandler = async (req, res) => {
+        try {
             const reserva = await ReservaServices.criarReserva(req.body);
-            return res.status(201).json(reserva);
-        }catch(e: any){
-            return res.status(400).json({error: e.message});
+            res.status(201).json(reserva);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
         }
-    }
-    async listarReserva(req: Request, res: Response){
-        try{
+    };
+
+    listarReserva: RequestHandler = async (req, res) => {
+        try {
             const reservas = await ReservaServices.listarReserva();
-            return res.status(200).json(reservas);
-        }catch(e: any){
-            return res.status(400).json({error: e.message});
+            res.status(200).json(reservas);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
         }
-        
+    };
 
-    }
-    async buscarReservaPorMatricula(req: Request, res: Response){
-        
-    }
-    async atualizarReserva(req: Request, res: Response){
+    buscarReservaPorMatricula: RequestHandler = async (req, res) => {
+        try {
+            const reservas = await ReservaServices.buscarReservaPorMatricula(req.params.matricula);
+            res.status(200).json(reservas);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    };
 
-    }
-    async deletarReserva(req: Request, res: Response){
-        try{
-            const { id } = req.params;
-            const reserva = await ReservaServices.deletarReserva(id);
-            return res.status(204).send();
-        } catch(e: any){
-            return res.status(400).json({error: e.message});
+    atualizarReserva: RequestHandler = async (req, res) => {
+        try {
+            const reservaAtualizada = await ReservaServices.atualizarReserva(req.params.id, req.body);
+            res.status(200).json(reservaAtualizada);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
         }
-    }
-    async adicionarPessoaNaReserva(req: Request, res: Response){
-        try{
-            const {id}=req.params;
-            const {matricula} = req.params;
-            const addPessoa = await ReservaServices.adicionarPessoaNaReserva(id, matricula);
-            return res.status(200).json(addPessoa);
-        }catch(e: any){
-            return res.status(400).json({error: e.message});
+    };
+
+    deletarReserva: RequestHandler = async (req, res) => {
+        try {
+            await ReservaServices.deletarReserva(req.params.id);
+            res.status(204).send();
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
         }
-    }
+    };
+
+    adicionarPessoaNaReserva: RequestHandler = async (req, res) => {
+        try {
+            await ReservaServices.adicionarPessoaNaReserva(req.params.id, req.body.matricula);
+            res.status(200).json({ message: 'Matrícula adicionada com sucesso' });
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    };
 }
+
+export default new ReservaController();
