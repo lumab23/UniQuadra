@@ -13,7 +13,7 @@ export const buscarTodosAlunosService = async (): Promise<HttpResponseModel> => 
             return await HttpResponse.noContent();
         }
     } catch (error) {
-        console.log("Erro ao buscar alunos: ", error);
+        console.error("Erro ao buscar alunos: ", error);
         return {
             statusCode: StatusCode.INTERNAL_SERVER_ERROR,
             body: { 
@@ -40,7 +40,7 @@ export const buscarAlunoPorIdService = async (id: string): Promise<HttpResponseM
             };
         }
     } catch (error) {
-        console.log("Erro ao buscar aluno por id: ", error);
+        console.error("Erro ao buscar aluno por id: ", error);
         return {
             statusCode: StatusCode.INTERNAL_SERVER_ERROR,
             body: { 
@@ -66,7 +66,7 @@ export const buscarAlunoPorMatriculaService = async (matricula: string): Promise
             };
         }
     } catch (error) {
-        console.log("Erro ao buscar aluno por matrícula: ", error);
+        console.error("Erro ao buscar aluno por matrícula: ", error);
         return {
             statusCode: StatusCode.INTERNAL_SERVER_ERROR,
             body: {
@@ -78,11 +78,14 @@ export const buscarAlunoPorMatriculaService = async (matricula: string): Promise
 
 // serviço para criar um novo aluno
 export const criarAlunoService = async (dadosAluno: { nome: string; matricula: string }): Promise<HttpResponseModel> => {
+    console.log('Service: Iniciando serviço de criação de aluno');
     try {
         // ver se já tem um aluno com a mesma matrícula
+        console.log('Service: Verificando matrícula existente:', dadosAluno.matricula);
         const alunoExistente = await AlunoRepository.buscarAlunoPorMatricula(dadosAluno.matricula);
 
         if (alunoExistente) {
+            console.log('Service: Matrícula já existe');
             return {
                 statusCode: StatusCode.CONFLICT,
                 body: {
@@ -91,14 +94,16 @@ export const criarAlunoService = async (dadosAluno: { nome: string; matricula: s
             }
         }
 
+        console.log('Service: Criando novo aluno');
         const novoAluno = await AlunoRepository.criarAluno(dadosAluno);
+        console.log('Service: Aluno criado com sucesso:', novoAluno);
         return {
             statusCode: StatusCode.CREATED,
             body: novoAluno
         }
 
     } catch (error) {
-        console.log("Erro ao criar aluno: ", error);
+        console.error("Service: Erro ao criar aluno:", error);
         return {
             statusCode: StatusCode.INTERNAL_SERVER_ERROR,
             body: {
@@ -147,7 +152,7 @@ export const atualizarAlunoService = async (
         const alunoAtualizado = await AlunoRepository.atualizarAluno(id, dadosAtualizadosAluno);
         return await HttpResponse.ok(alunoAtualizado);
     } catch (error) {
-        console.log("Erro ao atualizar aluno: ", error);
+        console.error("Erro ao atualizar aluno: ", error);
         return {
             statusCode: StatusCode.INTERNAL_SERVER_ERROR,
             body: {
@@ -164,7 +169,8 @@ export const removerAlunoService = async (id: string): Promise<HttpResponseModel
         
         // verificar se o aluno existe
         if (alunoExistente) {
-            return await HttpResponse.ok(alunoExistente);
+            const removido = await AlunoRepository.removerAluno(id);
+            return await HttpResponse.ok(removido);
         } else {
             return {
                 statusCode: StatusCode.NOT_FOUND,
@@ -174,7 +180,7 @@ export const removerAlunoService = async (id: string): Promise<HttpResponseModel
             }
         }
     } catch (error) {
-        console.log("Erro ao remover aluno: ", error);
+        console.error("Erro ao remover aluno: ", error);
         return {
             statusCode: StatusCode.INTERNAL_SERVER_ERROR,
             body: {

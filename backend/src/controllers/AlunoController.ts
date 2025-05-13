@@ -24,15 +24,20 @@ export const buscarAlunoPorMatricula = async (req: Request, res: Response) => {
 
 // criar um novo aluno
 export const criarAluno = async (req: Request, res: Response) => {
+    console.log('Controller: Iniciando criação de aluno');
     const { nome, matricula } = req.body;
+    console.log('Controller: Dados recebidos:', { nome, matricula });
 
     if (!nome || !matricula) {
+        console.log('Controller: Dados inválidos - nome ou matrícula faltando');
         return res.status(StatusCode.BAD_REQUEST).json({
             message: "Nome e matrícula são obrigatórios"
         }); 
     }
 
+    console.log('Controller: Chamando serviço de criação');
     const httpResponse = await AlunoService.criarAlunoService({ nome, matricula });
+    console.log('Controller: Resposta do serviço:', httpResponse);
     res.status(httpResponse.statusCode).json(httpResponse.body);
 }
 
