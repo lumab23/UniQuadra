@@ -49,15 +49,6 @@ class QuadraController {
         }
     };
 
-    mudarStatusQuadra: RequestHandler = async (req, res) => {
-        try {
-            const quadraAtualizada = await QuadraServices.mudarStatusQuadra(req.body.status, req.params.id);
-            res.status(200).json(quadraAtualizada);
-        } catch (e: any) {
-            res.status(400).json({ error: e.message });
-        }
-    };
-
     deletarQuadra: RequestHandler = async (req, res) => {
         try {
             await QuadraServices.deletarQuadra(req.params.id);

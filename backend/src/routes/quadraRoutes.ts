@@ -1,6 +1,5 @@
 import { Router } from "express";
 import QuadraController from "../controllers/QuadraController";
-import ReservaController from "../controllers/ReservaController";
 
 const routes = Router();
 
@@ -13,15 +12,5 @@ routes.get(
 );
 routes.put("/quadras/:id", QuadraController.atualizarQuadra); //funciona mas eu posso alterar qualquer coisa sem respeitar o schema
 routes.delete("/quadras/:id", QuadraController.deletarQuadra); //nao ta retornando nada no sucesso
-
-routes.post("/reservas", ReservaController.criarReserva);
-routes.get("/reservas", ReservaController.listarReserva);
-routes.get("/reservas/:matricula", ReservaController.buscarReservaPorMatricula); //teste ===========
-routes.put("/reservas/:id", ReservaController.atualizarReserva); // mensagem de erro feia
-routes.delete("/reservas/:id", ReservaController.deletarReserva);
-routes.patch(
-  "/reservas/:id/adicionar-pessoas",
-  ReservaController.adicionarPessoaNaReserva
-);
 
 export default routes;

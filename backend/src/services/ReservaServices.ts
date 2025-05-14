@@ -1,7 +1,9 @@
+import { buscarAlunoPorMatricula } from './../repositories/AlunoRepository';
 import ReservaRepository from '../repositories/ReservaRepository';
 import QuadraRepository from '../repositories/QuadraRepository';
 import mongoose from 'mongoose';
 import Quadra from '../models/Quadra'; 
+import AlunoRepository from '../repositories/AlunoRepository';
 import QuadraSchema from '../models/Quadra';
 
 class ReservaServices {
@@ -28,46 +30,23 @@ class ReservaServices {
         return quadra;
     }
     
-    async adicionarPessoaNaReserva(id: string, matricula: string){
-        //para adc pessoa na reserva, temos que saber qual é a reserva
-        //para saber a reserva, tem como usar o método qualQuadraDaReserva
-
-
-        const quadraDaReserva = await ReservaRepository.qualQuadraDaReserva(id);
+    async adicionarPessoaNaReserva(id: string, matricula: string) {
+        const aluno = await AlunoRepository.buscarAlunoPorMatricula(matricula);
+        if (!aluno) throw new Error('Aluno não encontrado');
+    
         const reserva = await ReservaRepository.buscarReservaPorId(id);
-        
-        //checks
-
-        if (!quadraDaReserva) {
-            throw new Error('Quadra não encontrada');
-        }
-        if (!matricula) {
-            throw new Error('Matricula não encontrada');
-        }
-        if(!reserva){
-            throw new Error('Reserva não encontrada');
-        }
-        if (reserva.matriculas.some(m => m.equals(new mongoose.Types.ObjectId(matricula)))) {
-            throw new Error('Matrícula já está na reserva');
-        }
-        
-
-        const isMatriculado = await ReservaRepository.buscarReservaPorMatricula(matricula);
-
-        if(isMatriculado.length != 0){
-            throw new Error('Matricula encontrada!');
-        }
-        const capacidadeQuadra = await ReservaRepository.capacidadeDaQuadra(id);
-       
-        if (reserva.matriculas.length >= capacidadeQuadra) {
-            throw new Error('Reserva lotada!');
-        }
-        
-
-        //adiciona a matricula na quadra
-        reserva.matriculas.push(new mongoose.Types.ObjectId(matricula));
+        if (!reserva) throw new Error('Reserva não encontrada');
+    
+        // Correção aplicada aqui:
+        const alunoJaAdicionado = reserva.matriculas.some((m: mongoose.Types.ObjectId) => 
+            m.equals(new mongoose.Types.ObjectId(aluno._id as string))
+        );
+    
+        if (alunoJaAdicionado) throw new Error('Aluno já está nesta reserva');
+    
+        // Restante do método permanece igual...
+        reserva.matriculas.push(new mongoose.Types.ObjectId(aluno._id as string));
         await reserva.save();
-
     }
 
 }

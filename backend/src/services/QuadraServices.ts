@@ -16,9 +16,7 @@ class QuadraServices {
     async atualizarQuadra(id: string, dados: any){
         return await Quadra.atualizarQuadra(id, dados);
     }
-    async mudarStatusQuadra(status: string, id: string){
-        return await Quadra.mudarStatusQuadra(status, id);
-    }
+
     async deletarQuadra(id: string){
         return await Quadra.deletarQuadra(id);
     }
