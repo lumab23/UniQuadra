@@ -27,4 +27,4 @@ export const atualizarAdministrador = async (
 
 export const removerAdministrador = async(id: string): Promise<IAdministrador | null> =>{
     return await Administrador.findByIdAndDelete(id);
-};d
+};
