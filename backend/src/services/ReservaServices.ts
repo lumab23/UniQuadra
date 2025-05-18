@@ -3,7 +3,7 @@ import ReservaRepository from '../repositories/ReservaRepository';
 import QuadraRepository from '../repositories/QuadraRepository';
 import mongoose from 'mongoose';
 import Quadra from '../models/Quadra'; 
-import AlunoRepository from '../repositories/AlunoRepository';
+import * as AlunoRepository from '../repositories/AlunoRepository';
 import QuadraSchema from '../models/Quadra';
 
 class ReservaServices {
