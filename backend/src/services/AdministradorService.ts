@@ -3,6 +3,7 @@ import * as AdministradorRepository from "../repositories/AdministradorRepositor
 import HttpResponseModel from "../models/http-response-model";
 import { StatusCode } from "../utils/statusCode";
 
+<<<<<<< Updated upstream
 export const buscarTodosadministradoresService = async (): Promise<HttpResponseModel> => {
     try{
         const data = await AdministradorRepository.buscarTodosAdministradores();
@@ -149,3 +150,20 @@ export const removerAdministradorService = async (id: string): Promise<HttpRespo
         };
     }
 }
+=======
+export const criarAdministrador = async (dados: {
+    nome: string;
+    email: string;
+    matricula: string;
+}): Promise<IAdministrador> => { 
+    return await AdministradorRepository.criarAdministrador(dados);
+};
+
+export const buscarTodosAdministradores = async(): Promise <IAdministrador[]> =>{
+    return await AdministradorRepository.buscarTodosAdministradores();
+};
+
+
+
+
+>>>>>>> Stashed changes
