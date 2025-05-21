@@ -1,6 +1,6 @@
 import Quadra from '../repositories/QuadraRepository';
 
-class QuadraServices {
+class QuadraService {
     async criarQuadra(dados: any){
         return await Quadra.criarQuadra(dados);
     }
@@ -22,4 +22,4 @@ class QuadraServices {
     }
 }
 
-export default new QuadraServices();
+export default new QuadraService();

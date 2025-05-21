@@ -1,4 +1,4 @@
-import { buscarAlunoPorMatricula } from './../repositories/AlunoRepository';
+import { buscarAlunoPorMatricula } from '../repositories/AlunoRepository';
 import ReservaRepository from '../repositories/ReservaRepository';
 import QuadraRepository from '../repositories/QuadraRepository';
 import mongoose from 'mongoose';
@@ -6,7 +6,7 @@ import Quadra from '../models/Quadra';
 import * as AlunoRepository from '../repositories/AlunoRepository';
 import QuadraSchema from '../models/Quadra';
 
-class ReservaServices {
+class ReservaService {
     async criarReserva(dados: any){
         return await ReservaRepository.criarReserva(dados);
     }
@@ -51,4 +51,4 @@ class ReservaServices {
 
 }
 
-export default new ReservaServices();
+export default new ReservaService();

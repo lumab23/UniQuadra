@@ -1,10 +1,10 @@
 import { RequestHandler } from 'express';
-import ReservaServices from '../services/ReservaServices';
+import ReservaService from '../services/ReservaService';
 
 class ReservaController {
     criarReserva: RequestHandler = async (req, res) => {
         try {
-            const reserva = await ReservaServices.criarReserva(req.body);
+            const reserva = await ReservaService.criarReserva(req.body);
             res.status(201).json(reserva);
         } catch (e: any) {
             res.status(400).json({ error: e.message });
@@ -13,7 +13,7 @@ class ReservaController {
 
     listarReserva: RequestHandler = async (req, res) => {
         try {
-            const reservas = await ReservaServices.listarReserva();
+            const reservas = await ReservaService.listarReserva();
             res.status(200).json(reservas);
         } catch (e: any) {
             res.status(400).json({ error: e.message });
@@ -22,7 +22,7 @@ class ReservaController {
 
     buscarReservaPorMatricula: RequestHandler = async (req, res) => {
         try {
-            const reservas = await ReservaServices.buscarReservaPorMatricula(req.params.matricula);
+            const reservas = await ReservaService.buscarReservaPorMatricula(req.params.matricula);
             res.status(200).json(reservas);
         } catch (e: any) {
             res.status(400).json({ error: e.message });
@@ -31,7 +31,7 @@ class ReservaController {
 
     atualizarReserva: RequestHandler = async (req, res) => {
         try {
-            const reservaAtualizada = await ReservaServices.atualizarReserva(req.params.id, req.body);
+            const reservaAtualizada = await ReservaService.atualizarReserva(req.params.id, req.body);
             res.status(200).json(reservaAtualizada);
         } catch (e: any) {
             res.status(400).json({ error: e.message });
@@ -40,7 +40,7 @@ class ReservaController {
 
     deletarReserva: RequestHandler = async (req, res) => {
         try {
-            await ReservaServices.deletarReserva(req.params.id);
+            await ReservaService.deletarReserva(req.params.id);
             res.status(204).send();
         } catch (e: any) {
             res.status(400).json({ error: e.message });
@@ -49,7 +49,7 @@ class ReservaController {
 
     adicionarPessoaNaReserva: RequestHandler = async (req, res) => {
         try {
-            await ReservaServices.adicionarPessoaNaReserva(req.params.id, req.body.matricula);
+            await ReservaService.adicionarPessoaNaReserva(req.params.id, req.body.matricula);
             res.status(200).json({ message: 'Matrícula adicionada com sucesso' });
         } catch (e: any) {
             res.status(400).json({ error: e.message });

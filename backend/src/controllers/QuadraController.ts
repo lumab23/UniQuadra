@@ -1,10 +1,10 @@
 import { RequestHandler } from 'express';
-import QuadraServices from '../services/QuadraServices';
+import QuadraService from '../services/QuadraService';
 
 class QuadraController {
     criarQuadra: RequestHandler = async (req, res) => {
         try {
-            const quadra = await QuadraServices.criarQuadra(req.body);
+            const quadra = await QuadraService.criarQuadra(req.body);
             res.status(201).json(quadra);
         } catch (e: any) {
             res.status(400).json({ error: e.message });
@@ -13,7 +13,7 @@ class QuadraController {
 
     listarQuadra: RequestHandler = async (req, res) => {
         try {
-            const quadras = await QuadraServices.listarQuadra();
+            const quadras = await QuadraService.listarQuadra();
             res.status(200).json(quadras);
         } catch (e: any) {
             res.status(400).json({ error: e.message });
@@ -22,7 +22,7 @@ class QuadraController {
 
     buscarQuadraPorId: RequestHandler = async (req, res) => {
         try {
-            const quadra = await QuadraServices.buscarQuadraPorId(req.params.id);
+            const quadra = await QuadraService.buscarQuadraPorId(req.params.id);
             quadra ? res.status(200).json(quadra)
                    : res.status(404).json({ error: 'Quadra não encontrada' });
         } catch (e: any) {
@@ -32,7 +32,7 @@ class QuadraController {
 
     buscarQuadraPorModalidade: RequestHandler = async (req, res) => {
         try {
-            const quadra = await QuadraServices.buscarQuadraPorModalidade(req.params.modalidade);
+            const quadra = await QuadraService.buscarQuadraPorModalidade(req.params.modalidade);
             quadra ? res.status(200).json(quadra)
                    : res.status(404).json({ error: 'Quadra não encontrada' });
         } catch (e: any) {
@@ -42,7 +42,7 @@ class QuadraController {
 
     atualizarQuadra: RequestHandler = async (req, res) => {
         try {
-            const quadraAtualizada = await QuadraServices.atualizarQuadra(req.params.id, req.body);
+            const quadraAtualizada = await QuadraService.atualizarQuadra(req.params.id, req.body);
             res.status(200).json(quadraAtualizada);
         } catch (e: any) {
             res.status(400).json({ error: e.message });
@@ -51,7 +51,7 @@ class QuadraController {
 
     deletarQuadra: RequestHandler = async (req, res) => {
         try {
-            await QuadraServices.deletarQuadra(req.params.id);
+            await QuadraService.deletarQuadra(req.params.id);
             res.status(204).send();
         } catch (e: any) {
             res.status(400).json({ error: e.message });
