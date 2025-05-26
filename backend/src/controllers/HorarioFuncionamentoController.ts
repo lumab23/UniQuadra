@@ -53,9 +53,10 @@ class HorarioFuncionamentoController {
             const { modalidade, diaSemana, hora } = req.query;
 
             if (!modalidade || !diaSemana || !hora) {
-                return res.status(StatusCode.BAD_REQUEST).json({
+                res.status(StatusCode.BAD_REQUEST).json({
                     error: 'Parâmetros "modalidade", "diaSemana" e "hora" são obrigatórios'
                 });
+                return;
             }
 
             const quadrasDisponiveis = await HorarioFuncionamentoService.buscarQuadrasDisponiveis(
