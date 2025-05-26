@@ -9,7 +9,7 @@ export interface IAdministrador extends Document{
 const AdministradorSchema = new Schema<IAdministrador>({
     nome: {
         type: String,
-        required: true,
+        require: true,
     },
     email: {
         type: String,

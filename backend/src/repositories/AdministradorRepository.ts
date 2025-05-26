@@ -7,11 +7,12 @@ export const buscarTodosAdministradores = async (): Promise<IAdministrador[]> =>
 export const buscarAdministradorPorId = async (id: string): Promise<IAdministrador | null> => {
     return await Administrador.findById(id);
 };
-
+export const buscarAdministradorPorMatricula = async (matricula: string): Promise<IAdministrador | null> => {
+    return await Administrador.findOne({ matricula });
+};
 export const criarAdministrador = async (dados: {
     nome: string;
-    email: string;
-    senha: string;
+    matricula: string;
 }): Promise<IAdministrador> => {
     const admin = new Administrador(dados);
     return await admin.save();
@@ -19,7 +20,7 @@ export const criarAdministrador = async (dados: {
 
 export const atualizarAdministrador = async (
     id: string, 
-    dados:{ nome?: string; email?: string; senha?: string}
+    dados:{ nome?: string; matricula?: string}
 ): Promise<IAdministrador | null> => { 
     return await Administrador.findByIdAndUpdate(id,dados,{new: true});
 };
