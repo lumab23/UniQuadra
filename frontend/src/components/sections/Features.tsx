@@ -1,55 +1,51 @@
+import { Clock, CreditCard, Activity } from "lucide-react";
 import Card from "../ui/Card";
+import "../sections/styles/Features.css";
 
 const Features = () => {
   const features = [
     {
-      icon: "📅",
+      icon: <Clock size={32} />,
       title: "Horário das Quadras",
       description: "Consulte a disponibilidade das quadras em tempo real e faça sua reserva de forma rápida e fácil.",
+      gradient: "from-blue-600 to-blue-700"
     },
     {
-      icon: "🆔",
+      icon: <CreditCard size={32} />,
       title: "Carteirinha Digital",
       description: "Tenha sua identificação estudantil sempre à mão com nossa carteirinha 100% digital.",
+      gradient: "from-purple-600 to-purple-700"
     },
     {
-      icon: "🏓",
+      icon: <Activity size={32} />,
       title: "Modalidades Esportivas",
       description: "Descubra todas as modalidades disponíveis e encontre o esporte perfeito para você.",
+      gradient: "from-green-600 to-green-700"
     },
   ];
 
   return (
-    <section className="min-h-[40vh] py-16 bg-gradient-to-r from-blue-800 to-blue-900 flex flex-col justify-center items-center px-4">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Título */}
-        <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white">
+    <section className="features-section">
+      <div className="features-container">
+        {/* Header */}
+        <div className="features-header">
+          <h2 className="features-title">
             Recursos Principais
           </h2>
-        </div>
-        
-        {/* Espaçamento */}
-        <div className="h-8"></div>
-        
-        {/* Descrição */}
-        <div className="text-center">
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+          <p className="features-description">
             Tudo que você precisa para aproveitar ao máximo o esporte na Unifor
           </p>
         </div>
-        
-        {/* Espaçamento */}
-        <div className="h-16"></div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 place-items-center">
+        <div className="features-grid">
           {features.map((feature, index) => (
-            <div key={index} className="p-4">
+            <div key={index} className="feature-card-wrapper">
               <Card
                 icon={feature.icon}
                 title={feature.title}
                 description={feature.description}
+                gradient={feature.gradient}
               />
             </div>
           ))}

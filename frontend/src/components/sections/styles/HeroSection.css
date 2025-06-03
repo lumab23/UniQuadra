@@ -1,0 +1,138 @@
+/* HeroSection.css */
+
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 50vh;
+  background: linear-gradient(to bottom right, #4ade80, #3b82f6, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Decorative elements */
+.decorative-element-1 {
+  position: absolute;
+  top: 80px;
+  left: 40px;
+  width: 80px;
+  height: 80px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  filter: blur(24px);
+  animation: pulse 2s infinite;
+}
+
+.decorative-element-2 {
+  position: absolute;
+  bottom: 80px;
+  right: 40px;
+  width: 128px;
+  height: 128px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  filter: blur(24px);
+  animation: pulse 2s infinite;
+  animation-delay: 1s;
+}
+
+.decorative-element-3 {
+  position: absolute;
+  top: 50%;
+  left: 25%;
+  width: 64px;
+  height: 64px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  filter: blur(16px);
+  animation: bounce 2s infinite;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 0 16px;
+  max-width: 896px;
+}
+
+.hero-title {
+  color: white;
+  font-size: 48px;
+  font-weight: bold;
+  letter-spacing: -0.025em;
+  filter: drop-shadow(0 25px 25px rgba(0, 0, 0, 0.15));
+  margin-bottom: 24px;
+  animation: fadeIn 1s ease-out;
+}
+
+.hero-description {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 20px;
+  margin-bottom: 32px;
+  max-width: 512px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.hero-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  justify-content: center;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-25%);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (min-width: 640px) {
+  .hero-buttons {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero-title {
+    font-size: 72px;
+  }
+  
+  .hero-description {
+    font-size: 24px;
+  }
+}

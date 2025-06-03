@@ -1,0 +1,136 @@
+/* CardSection.css */
+
+.card-section {
+  padding: 80px 0;
+  background: linear-gradient(to bottom right, #2563eb, #7c3aed);
+}
+
+.section-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.section-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.section-content {
+  color: white;
+}
+
+.section-title {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 24px;
+  line-height: 1.1;
+}
+
+.section-description {
+  font-size: 20px;
+  color: #dbeafe;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+.features-list {
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feature-icon {
+  width: 24px;
+  height: 24px;
+  background-color: #4ade80;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature-icon span {
+  color: white;
+  font-size: 14px;
+}
+
+.feature-text {
+  color: #dbeafe;
+}
+
+.section-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* saiba mais button*/
+.saiba-mais-button {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border: 2px solid rgba(255, 255, 255, 0.8) !important;
+  color: white !important;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease !important;
+}
+
+.saiba-mais-button:hover {
+  background-color: white !important;
+  color: #2563eb !important;
+  border-color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.card-display {
+  display: flex;
+  justify-content: center;
+}
+
+/* Responsive Design */
+@media (min-width: 640px) {
+  .section-container {
+    padding: 0 24px;
+  }
+  
+  .section-buttons {
+    flex-direction: row;
+  }
+  
+  .section-title {
+    font-size: 48px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-container {
+    padding: 0 32px;
+  }
+  
+  .section-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .card-display {
+    justify-content: flex-end;
+  }
+  
+  .section-title {
+    font-size: 48px;
+  }
+}
+
+@media (min-width: 768px) {
+  .section-title {
+    font-size: 48px;
+  }
+}

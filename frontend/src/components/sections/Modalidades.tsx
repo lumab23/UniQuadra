@@ -1,78 +1,104 @@
+import { useState } from "react";
 import Button from "../ui/Button";
+import "../sections/styles/Modalidades.css";
 
 const Modalidades = () => {
-  const modalidades = [
+  const [showAll, setShowAll] = useState(false);
+
+  const modalidadesPrincipais = [
     {
       nome: "Natação",
       emoji: "🏊‍♀️",
-      color: "from-blue-400 to-blue-600",
+      color: "blue",
       description: "Piscina olímpica aquecida"
     },
     {
       nome: "Basquete",
       emoji: "🏀",
-      color: "from-orange-400 to-orange-600",
+      color: "orange",
       description: "Quadras profissionais"
     },
     {
       nome: "Vôlei de Praia",
       emoji: "🏐",
-      color: "from-yellow-400 to-yellow-600",
+      color: "yellow",
       description: "Areia de qualidade"
     },
     {
       nome: "Futebol",
       emoji: "⚽",
-      color: "from-green-400 to-green-600",
+      color: "green",
       description: "Campo oficial"
     },
   ];
 
+  const modalidadesExtras = [
+    {
+      nome: "Atletismo",
+      emoji: "🏃‍♂️",
+      color: "red",
+      description: "Pista oficial de atletismo"
+    },
+    {
+      nome: "Beach Tennis",
+      emoji: "🏸",
+      color: "purple",
+      description: "Quadras de areia"
+    },
+    {
+      nome: "Tênis",
+      emoji: "🎾",
+      color: "pink",
+      description: "Quadras de saibro"
+    },
+    {
+      nome: "Vôlei",
+      emoji: "🏐",
+      color: "teal",
+      description: "Quadras cobertas"
+    },
+  ];
+
+  const modalidadesParaExibir = showAll 
+    ? [...modalidadesPrincipais, ...modalidadesExtras] 
+    : modalidadesPrincipais;
+
   return (
-    <section className="py-8 bg-gray-50 flex flex-col justify-center items-center min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Título */}
-        <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-800">
+    <section id="modalidades" className="modalidades-section">
+      <div className="modalidades-container">
+        {/* Header */}
+        <div className="modalidades-header">
+          <h2 className="modalidades-title">
             Modalidades Esportivas
           </h2>
-        </div>
-
-        {/* Espaçamento */}
-        <div className="h-6"></div>
-
-        {/* Descrição */}
-        <div className="text-center">
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="modalidades-description">
             Explore todas as modalidades disponíveis e encontre sua paixão
           </p>
         </div>
 
-        {/* Espaçamento */}
-        <div className="h-16"></div>
-
         {/* Cards das Modalidades */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {modalidades.map((modalidade, index) => (
-            <div key={index} className="flex flex-col items-center group cursor-pointer">
-              <div className={`w-40 h-40 bg-gradient-to-br ${modalidade.color} rounded-full shadow-2xl flex items-center justify-center text-6xl transform transition-all duration-300 group-hover:scale-110 group-hover:shadow-3xl mb-4`}>
-                <span className="drop-shadow-lg">{modalidade.emoji}</span>
+        <div className="modalidades-grid">
+          {modalidadesParaExibir.map((modalidade, index) => (
+            <div key={index} className="modalidades-card">
+              <div className={`modalidades-card-circle modalidades-${modalidade.color}`}>
+                <span className="modalidades-emoji">{modalidade.emoji}</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 group-hover:text-blue-600 transition-colors duration-300 mb-2">
+              <h3 className="modalidades-card-title">
                 {modalidade.nome}
               </h3>
-              <p className="text-sm text-gray-500 text-center">{modalidade.description}</p>
+              <p className="modalidades-card-description">{modalidade.description}</p>
             </div>
           ))}
         </div>
 
-        {/* Espaçamento */}
-        <div className="h-12"></div>
-
         {/* Botão */}
-        <div className="text-center">
-          <Button variant="secondary" size="lg">
-            Ver Todas as Modalidades
+        <div className="modalidades-button-container">
+          <Button 
+            variant="secondary" 
+            size="lg"
+            onClick={() => setShowAll(!showAll)}
+          >
+            {showAll ? "Ver Menos" : "Ver Todas as Modalidades"}
           </Button>
         </div>
       </div>

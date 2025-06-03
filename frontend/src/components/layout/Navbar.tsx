@@ -1,54 +1,117 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import "./Navbar.css";
 
 const Navbar = () => {
-  const [ativo, setAtivo] = useState("Início");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [ativo, setAtivo] = useState("Home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  const navItems = [
-    { label: "Início", href: "/" },
-    { label: "Modalidades", href: "/modalidades" },
-    { label: "Reservar Quadra", href: "/reserva" },
-    { label: "Carteirinha", href: "/carteirinha" },
+  interface NavItem {
+    label: string;
+    href: string;
+    type: "scroll" | "route";
+  }
+
+  const navItems: NavItem[] = [
+    { label: "Home", href: "#home", type: "scroll" },
+    { label: "Modalidades", href: "#modalidades", type: "scroll" },
+    { label: "Carteirinha", href: "/carteirinha", type: "route" },
+    { label: "Reservar Quadra", href: "#reserva", type: "route" },
   ];
 
+  const handleNavClick = (item: NavItem): void => {
+    setAtivo(item.label);
+
+    if (item.type === "route") {
+      // Navegação para outra página
+      navigate(item.href);
+      return;
+    }
+
+    // Navegação por scroll (apenas na página Home)
+    if (location.pathname !== "/") {
+      // Se não estiver na home, navegar para home primeiro
+      navigate("/");
+      // Aguardar um pouco para a página carregar e então fazer scroll
+      setTimeout(() => {
+        if (item.label === "Home") {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+          });
+        } else {
+          const element = document.querySelector(item.href);
+          if (element) {
+            const navbarHeight = 80;
+            const elementPosition = (element as HTMLElement).offsetTop - navbarHeight;
+            
+            window.scrollTo({
+              top: elementPosition,
+              behavior: "smooth"
+            });
+          }
+        }
+      }, 100);
+      return;
+    }
+
+    // Se já estiver na home, fazer scroll normalmente
+    if (item.label === "Home") {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+      return;
+    }
+
+    const element = document.querySelector(item.href);
+    if (element) {
+      const navbarHeight = 80;
+      const elementPosition = (element as HTMLElement).offsetTop - navbarHeight;
+      
+      window.scrollTo({
+        top: elementPosition,
+        behavior: "smooth"
+      });
+    }
+  };
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
-      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+    <nav className="navbar">
+      <div className="navbar-container">
+        <div className="navbar-content">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-md flex items-center justify-center">
-              <span className="text-white font-bold text-lg">U</span>
+          <div className="logo-section" onClick={() => handleNavClick({ label: "Home", href: "#home", type: "scroll" })}>
+            <div className="logo-icon">
+              <span>U</span>
             </div>
-            <span className="font-bold text-xl text-gray-800 hidden sm:block">UNIFOR SPORTS</span>
+            <span className="logo-text">UNIFOR SPORTS</span>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-8">
+          <div className="desktop-nav">
             {navItems.map((item) => (
               <button
                 key={item.label}
-                onClick={() => setAtivo(item.label)}
-                className="relative px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium"
+                onClick={() => handleNavClick(item)}
+                className={`nav-button ${ativo === item.label ? 'active' : ''}`}
               >
                 {item.label}
-                {ativo === item.label && (
-                  <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-blue-600 rounded-full" />
-                )}
               </button>
             ))}
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="mobile-menu-btn-container">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-700 hover:text-blue-600 focus:outline-none p-2"
+              className="mobile-menu-btn"
             >
-              <div className="w-6 h-6 flex flex-col justify-center items-center">
-                <span className={`bg-current block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm ${mobileMenuOpen ? 'rotate-45 translate-y-1' : '-translate-y-0.5'}`}></span>
-                <span className={`bg-current block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm my-0.5 ${mobileMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
-                <span className={`bg-current block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm ${mobileMenuOpen ? '-rotate-45 -translate-y-1' : 'translate-y-0.5'}`}></span>
+              <div className={`hamburger ${mobileMenuOpen ? 'open' : ''}`}>
+                <span></span>
+                <span></span>
+                <span></span>
               </div>
             </button>
           </div>
@@ -56,29 +119,24 @@ const Navbar = () => {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {navItems.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => {
-                    setAtivo(item.label);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`block px-3 py-2 text-base font-medium w-full text-left transition-colors duration-200 rounded-lg ${
-                    ativo === item.label 
-                      ? 'text-blue-600 bg-blue-50' 
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+          <div className="mobile-menu">
+            {navItems.map((item) => (
+              <button
+                key={item.label}
+                onClick={() => {
+                  handleNavClick(item);
+                  setMobileMenuOpen(false);
+                }}
+                className={`mobile-menu-item ${ativo === item.label ? 'active' : ''}`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         )}
       </div>
     </nav>
   );
 };
+
 export default Navbar;
