@@ -1,0 +1,585 @@
+/* Layout Principal */
+.schedule-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Header */
+.schedule-header {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 16px 0;
+}
+
+.header-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-button {
+  color: #3b82f6;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.back-button:hover {
+  color: #1d4ed8;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.week-nav-button {
+  padding: 8px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #3b82f6;
+  transition: all 0.2s;
+}
+
+.week-nav-button:hover {
+  background: #3b82f6;
+  color: white;
+}
+
+.current-week {
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 14px;
+  min-width: 100px;
+  text-align: center;
+}
+
+/* Conteúdo Principal */
+.schedule-content {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* Container dos Seletores */
+.selectors-container {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.selector-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  flex: 1;
+  min-width: 300px;
+}
+
+.selector-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+.selector-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.selector-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  flex: 1;
+  justify-content: center;
+  min-width: 100px;
+}
+
+.selector-button:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.selector-button.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.selector-button-icon {
+  font-size: 16px;
+}
+
+/* Legenda */
+.legend {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-color.available {
+  background-color: #10b981;
+}
+
+.legend-color.occupied {
+  background-color: #ef4444;
+}
+
+.legend-color.not-applicable {
+  background-color: #9ca3af;
+}
+
+.legend-info {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Seções de Modalidade */
+.sport-section {
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.sport-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sport-header-left,
+.sport-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sport-icon,
+.period-icon {
+  font-size: 24px;
+}
+
+.sport-title,
+.period-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.period-title {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Horários das Quadras */
+.court-schedule {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.court-schedule:last-child {
+  border-bottom: none;
+}
+
+.court-name-header {
+  background: #f9fafb;
+  padding: 12px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.court-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+/* Grid de Horários */
+.schedule-grid {
+  overflow-x: auto;
+}
+
+.grid-header {
+  display: grid;
+  grid-template-columns: 140px repeat(5, 1fr);
+  background: #f8fafc;
+  border-bottom: 2px solid #e5e7eb;
+  min-width: 900px;
+}
+
+.time-column-header {
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #374151;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-header {
+  padding: 12px 12px;
+  text-align: center;
+  border-right: 1px solid #e5e7eb;
+}
+
+.day-header:last-child {
+  border-right: none;
+}
+
+.day-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.day-date {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Linhas de Horários */
+.schedule-row {
+  display: grid;
+  grid-template-columns: 140px repeat(5, 1fr);
+  border-bottom: 1px solid #f3f4f6;
+  min-width: 900px;
+}
+
+.schedule-row:hover {
+  background: #fafbfc;
+}
+
+.time-cell {
+  padding: 12px 16px;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #fefefe;
+}
+
+.time-display {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.time-code {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Células do Grid */
+.schedule-cell {
+  padding: 12px;
+  border-right: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 60px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.schedule-cell:last-child {
+  border-right: none;
+}
+
+.schedule-cell.available {
+  background: #f0fdf4;
+}
+
+.schedule-cell.available:hover {
+  background: #dcfce7;
+}
+
+.schedule-cell.occupied {
+  background: #fef2f2;
+}
+
+.schedule-cell.not-applicable {
+  background: #f9fafb;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Indicadores de Status */
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.status-dot.green {
+  background-color: #10b981;
+}
+
+.status-dot.red {
+  background-color: #ef4444;
+}
+
+.status-dot.gray {
+  background-color: #9ca3af;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .schedule-content {
+    max-width: 100%;
+  }
+  
+  .grid-header {
+    grid-template-columns: 120px repeat(5, 1fr);
+    min-width: 800px;
+  }
+
+  .schedule-row {
+    grid-template-columns: 120px repeat(5, 1fr);
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-left {
+    justify-content: center;
+  }
+
+  .week-navigation {
+    justify-content: center;
+  }
+
+  .schedule-content {
+    padding: 16px 12px;
+  }
+
+  .selectors-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .selector-section {
+    padding: 16px;
+    min-width: auto;
+  }
+
+  .selector-buttons {
+    justify-content: center;
+  }
+
+  .selector-button {
+    min-width: 80px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .legend {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .sport-header {
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .sport-title,
+  .period-title {
+    font-size: 16px;
+  }
+
+  .court-name-header {
+    padding: 10px 16px;
+  }
+
+  .grid-header {
+    grid-template-columns: 100px repeat(5, 80px);
+    font-size: 11px;
+    min-width: 500px;
+  }
+
+  .schedule-row {
+    grid-template-columns: 100px repeat(5, 80px);
+    min-width: 500px;
+  }
+
+  .time-cell {
+    padding: 8px 12px;
+  }
+
+  .time-display {
+    font-size: 11px;
+  }
+
+  .time-code {
+    font-size: 9px;
+  }
+
+  .schedule-cell {
+    min-height: 50px;
+    padding: 8px;
+  }
+
+  .day-name {
+    font-size: 12px;
+  }
+
+  .day-date {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 16px;
+  }
+
+  .week-nav-button {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .current-week {
+    font-size: 12px;
+  }
+
+  .selector-title {
+    font-size: 14px;
+  }
+
+  .selector-button {
+    padding: 8px 10px;
+    font-size: 11px;
+    min-width: 70px;
+  }
+
+  .selector-button-icon {
+    font-size: 14px;
+  }
+
+  .sport-icon,
+  .period-icon {
+    font-size: 18px;
+  }
+
+  .grid-header {
+    grid-template-columns: 80px repeat(5, 60px);
+    min-width: 380px;
+  }
+
+  .schedule-row {
+    grid-template-columns: 80px repeat(5, 60px);
+    min-width: 380px;
+  }
+
+  .day-name {
+    font-size: 10px;
+  }
+
+  .day-date {
+    font-size: 8px;
+  }
+
+  .time-display {
+    font-size: 10px;
+  }
+
+  .time-code {
+    font-size: 8px;
+  }
+
+  .schedule-cell {
+    min-height: 40px;
+    padding: 4px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    top: 6px;
+    right: 6px;
+  }
+}

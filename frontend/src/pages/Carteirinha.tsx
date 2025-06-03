@@ -2,8 +2,17 @@ import Navbar from "../components/layout/Navbar";
 import FormSection from "../components/sections/FormSection";
 import StudentCard from "../components/sections/StudentCard";
 import "../pages/styles/Carteirinha.css";
+import HorarioSemanal from "./HorarioSemanal";
+import { useState } from "react";
 
 const Carteirinha = () => {
+
+  const [showSchedule, setShowSchedule] = useState(false);
+
+  if (showSchedule) {
+    return <HorarioSemanal />;
+  }
+
   return (
     <div className="carteirinha-page">
       <Navbar />
@@ -61,7 +70,7 @@ const Carteirinha = () => {
                 <br />
                 disponíveis!
               </h2>
-              <button className="schedule-button">
+              <button className="schedule-button" onClick={() => setShowSchedule(true)}>
                 HORÁRIOS
               </button>
             </div>
