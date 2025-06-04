@@ -43,6 +43,7 @@ const AdminDashboard: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Dados mockados para demonstração
   const mockStudents: Student[] = [
@@ -259,7 +260,7 @@ const AdminDashboard: React.FC = () => {
               </button>
               <button 
                 className="btn-danger"
-                onClick={handleLogout}
+                onClick={() => setShowLogoutModal(true)}
               >
                 🚪 Sair
               </button>
@@ -604,6 +605,25 @@ const AdminDashboard: React.FC = () => {
                     </span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Confirmação de Logout */}
+        {showLogoutModal && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <div className="logout-modal-icon">⚠️</div>
+              <div className="logout-modal-title">Confirmação</div>
+              <div className="logout-modal-message">Tem certeza que quer sair?</div>
+              <div className="logout-modal-actions">
+                <button className="btn-secondary" onClick={() => setShowLogoutModal(false)}>
+                  Cancelar
+                </button>
+                <button className="btn-danger" onClick={handleLogout}>
+                  Sair
+                </button>
               </div>
             </div>
           </div>
