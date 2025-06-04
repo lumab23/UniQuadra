@@ -20,6 +20,7 @@
   justify-content: space-between;
   height: 64px;
   align-items: center;
+  gap: 16px;
 }
 
 /* Logo Section */
@@ -27,6 +28,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
 }
 
 .logo-icon {
@@ -56,6 +58,8 @@
 .desktop-nav {
   display: flex;
   gap: 32px;
+  flex: 1;
+  justify-content: center;
 }
 
 .nav-button {
@@ -83,6 +87,35 @@
   height: 3px;
   background-color: #2563eb;
   border-radius: 2px;
+}
+
+/* Admin Section */
+.admin-section {
+  display: flex;
+  align-items: center;
+}
+
+.admin-button {
+  padding: 8px 16px;
+  background: linear-gradient(to right, #2563eb, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-button:hover {
+  background: linear-gradient(to right, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.admin-button:active {
+  transform: translateY(0);
 }
 
 /* Mobile Menu Button */
@@ -180,9 +213,25 @@
   background-color: #f9fafb;
 }
 
+.mobile-menu-item.admin-mobile {
+  background: linear-gradient(to right, #2563eb, #1d4ed8);
+  color: white;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.mobile-menu-item.admin-mobile:hover {
+  background: linear-gradient(to right, #1d4ed8, #1e40af);
+  color: white;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .desktop-nav {
+    display: none;
+  }
+
+  .admin-section {
     display: none;
   }
 
@@ -201,6 +250,13 @@
   }
 }
 
+@media (max-width: 480px) {
+  .admin-button {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
 @media (min-width: 640px) {
   .logo-text {
     display: block;
@@ -214,5 +270,10 @@
 @media (min-width: 1024px) {
   .navbar-container {
     padding: 0 32px;
+  }
+
+  .admin-button {
+    font-size: 15px;
+    padding: 10px 20px;
   }
 }

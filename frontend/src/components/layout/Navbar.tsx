@@ -18,7 +18,6 @@ const Navbar = () => {
     { label: "Home", href: "#home", type: "scroll" },
     { label: "Modalidades", href: "#modalidades", type: "scroll" },
     { label: "Carteirinha", href: "/carteirinha", type: "route" },
-    { label: "Reservar Quadra", href: "#reserva", type: "route" },
   ];
 
   const handleNavClick = (item: NavItem): void => {
@@ -77,6 +76,13 @@ const Navbar = () => {
       });
     }
   };
+
+  const handleAdminClick = (): void => {
+    // Por enquanto apenas um placeholder - futuramente será a rota de login do admin
+    navigate("/admin/login");
+    console.log("Unifor Sports Online clicked - Admin login");
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -100,6 +106,16 @@ const Navbar = () => {
                 {item.label}
               </button>
             ))}
+          </div>
+
+          {/* Admin Section */}
+          <div className="admin-section">
+            <button
+              onClick={handleAdminClick}
+              className="admin-button"
+            >
+              Unifor Sports Online
+            </button>
           </div>
 
           {/* Mobile menu button */}
@@ -132,6 +148,16 @@ const Navbar = () => {
                 {item.label}
               </button>
             ))}
+            {/* Admin button no menu mobile */}
+            <button
+              onClick={() => {
+                handleAdminClick();
+                setMobileMenuOpen(false);
+              }}
+              className="mobile-menu-item admin-mobile"
+            >
+              Unifor Sports Online
+            </button>
           </div>
         )}
       </div>

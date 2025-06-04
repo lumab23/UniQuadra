@@ -71,9 +71,14 @@
   transition: all 0.2s;
 }
 
-.week-nav-button:hover {
+.week-nav-button:hover:not(:disabled) {
   background: #3b82f6;
   color: white;
+}
+
+.week-nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .current-week {
@@ -142,12 +147,14 @@
 .selector-button:hover {
   background: #f1f5f9;
   border-color: #cbd5e1;
+  transform: translateY(-1px);
 }
 
 .selector-button.active {
   background: #3b82f6;
   border-color: #3b82f6;
   color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .selector-button-icon {
@@ -173,12 +180,14 @@
   gap: 8px;
   font-size: 12px;
   color: #4b5563;
+  font-weight: 500;
 }
 
 .legend-color {
   width: 12px;
   height: 12px;
   border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .legend-color.available {
@@ -189,6 +198,10 @@
   background-color: #ef4444;
 }
 
+.legend-color.reserved {
+  background-color: #3b82f6;
+}
+
 .legend-color.not-applicable {
   background-color: #9ca3af;
 }
@@ -197,6 +210,7 @@
   font-size: 12px;
   color: #6b7280;
   font-weight: 500;
+  margin-left: auto;
 }
 
 /* Seções de Modalidade */
@@ -266,6 +280,8 @@
 /* Grid de Horários */
 .schedule-grid {
   overflow-x: auto;
+  width: 100%;
+  min-width: 700px;
 }
 
 .grid-header {
@@ -273,7 +289,9 @@
   grid-template-columns: 140px repeat(5, 1fr);
   background: #f8fafc;
   border-bottom: 2px solid #e5e7eb;
-  min-width: 900px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .time-column-header {
@@ -284,6 +302,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 14px;
 }
 
 .day-header {
@@ -313,7 +332,7 @@
   display: grid;
   grid-template-columns: 140px repeat(5, 1fr);
   border-bottom: 1px solid #f3f4f6;
-  min-width: 900px;
+  transition: background-color 0.2s;
 }
 
 .schedule-row:hover {
@@ -346,6 +365,7 @@
   padding: 12px;
   border-right: 1px solid #f3f4f6;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
@@ -360,20 +380,35 @@
 
 .schedule-cell.available {
   background: #f0fdf4;
+  border-left: 3px solid #10b981;
 }
 
 .schedule-cell.available:hover {
   background: #dcfce7;
+  transform: scale(1.02);
 }
 
 .schedule-cell.occupied {
   background: #fef2f2;
+  border-left: 3px solid #ef4444;
+  cursor: not-allowed;
+}
+
+.schedule-cell.reserved {
+  background: #eff6ff;
+  border-left: 3px solid #3b82f6;
+}
+
+.schedule-cell.reserved:hover {
+  background: #dbeafe;
+  transform: scale(1.02);
 }
 
 .schedule-cell.not-applicable {
   background: #f9fafb;
   opacity: 0.6;
   cursor: not-allowed;
+  border-left: 3px solid #9ca3af;
 }
 
 /* Indicadores de Status */
@@ -384,6 +419,8 @@
   position: absolute;
   top: 8px;
   right: 8px;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .status-dot.green {
@@ -394,24 +431,197 @@
   background-color: #ef4444;
 }
 
+.status-dot.blue {
+  background-color: #3b82f6;
+}
+
 .status-dot.gray {
   background-color: #9ca3af;
+}
+
+.reservation-icon {
+  font-size: 16px;
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
+/* Modal de Confirmação */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(17, 24, 39, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.modal-content {
+  padding: 20px 24px;
+}
+
+.reservation-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.detail-value {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-actions {
+  padding: 16px 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
 }
 
 /* Responsividade */
 @media (max-width: 1024px) {
   .schedule-content {
-    max-width: 100%;
+    padding: 20px 16px;
+  }
+  
+  .schedule-grid {
+    min-width: 600px;
   }
   
   .grid-header {
-    grid-template-columns: 120px repeat(5, 1fr);
-    min-width: 800px;
+    grid-template-columns: 110px repeat(5, 1fr);
   }
 
   .schedule-row {
-    grid-template-columns: 120px repeat(5, 1fr);
-    min-width: 800px;
+    grid-template-columns: 110px repeat(5, 1fr);
+  }
+
+  .time-cell {
+    padding: 8px 12px;
+  }
+
+  .time-display {
+    font-size: 12px;
+  }
+
+  .time-code {
+    font-size: 10px;
   }
 }
 
@@ -459,6 +669,11 @@
     gap: 12px;
   }
 
+  .legend-info {
+    margin-left: 0;
+    margin-top: 8px;
+  }
+
   .sport-header {
     padding: 12px 16px;
     flex-direction: column;
@@ -475,19 +690,21 @@
     padding: 10px 16px;
   }
 
-  .grid-header {
-    grid-template-columns: 100px repeat(5, 80px);
-    font-size: 11px;
+  .schedule-grid {
     min-width: 500px;
+  }
+
+  .grid-header {
+    grid-template-columns: 90px repeat(5, 1fr);
+    font-size: 11px;
   }
 
   .schedule-row {
-    grid-template-columns: 100px repeat(5, 80px);
-    min-width: 500px;
+    grid-template-columns: 90px repeat(5, 1fr);
   }
 
   .time-cell {
-    padding: 8px 12px;
+    padding: 6px 8px;
   }
 
   .time-display {
@@ -500,7 +717,7 @@
 
   .schedule-cell {
     min-height: 50px;
-    padding: 8px;
+    padding: 6px;
   }
 
   .day-name {
@@ -509,6 +726,34 @@
 
   .day-date {
     font-size: 10px;
+  }
+
+  .day-header {
+    padding: 8px 4px;
+  }
+
+  .modal {
+    margin: 16px;
+    max-width: calc(100% - 32px);
+  }
+
+  .modal-header {
+    padding: 16px 20px 12px;
+  }
+
+  .modal-content {
+    padding: 16px 20px;
+  }
+
+  .modal-actions {
+    padding: 12px 20px 20px;
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    padding: 12px 20px;
   }
 }
 
@@ -545,14 +790,20 @@
     font-size: 18px;
   }
 
+  .schedule-content {
+    padding: 12px 8px;
+  }
+
+  .schedule-grid {
+    min-width: 400px;
+  }
+
   .grid-header {
-    grid-template-columns: 80px repeat(5, 60px);
-    min-width: 380px;
+    grid-template-columns: 70px repeat(5, 1fr);
   }
 
   .schedule-row {
-    grid-template-columns: 80px repeat(5, 60px);
-    min-width: 380px;
+    grid-template-columns: 70px repeat(5, 1fr);
   }
 
   .day-name {
@@ -563,12 +814,20 @@
     font-size: 8px;
   }
 
+  .day-header {
+    padding: 6px 2px;
+  }
+
   .time-display {
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .time-code {
-    font-size: 8px;
+    font-size: 7px;
+  }
+
+  .time-cell {
+    padding: 4px 6px;
   }
 
   .schedule-cell {
@@ -581,5 +840,9 @@
     height: 8px;
     top: 6px;
     right: 6px;
+  }
+
+  .reservation-icon {
+    font-size: 12px;
   }
 }

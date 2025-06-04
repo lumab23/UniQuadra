@@ -12,6 +12,12 @@
   display: flex;
   align-items: center;
   position: relative;
+  transition: background 0.5s ease;
+}
+
+/* Estilo verde quando a carteirinha for criada */
+.carteirinha-page.card-created .carteirinha-hero-section {
+  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
 }
 
 .carteirinha-hero-container {
@@ -64,6 +70,12 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   color: white;
   font-family: 'Arial', sans-serif;
+  transition: background 0.5s ease;
+}
+
+/* Cartão verde quando a carteirinha for criada */
+.carteirinha-page.card-created .student-id-card {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
 }
 
 .card-header-section {
@@ -267,6 +279,12 @@
 .schedule-section {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
   padding: 80px 0;
+  transition: background 0.5s ease;
+}
+
+/* Seção de horários verde quando a carteirinha for criada */
+.carteirinha-page.card-created .schedule-section {
+  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
 }
 
 .schedule-container {
@@ -320,6 +338,11 @@
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 1px;
+}
+
+/* Botão com cor verde quando a carteirinha for criada */
+.carteirinha-page.card-created .schedule-button {
+  color: #059669;
 }
 
 .schedule-button:hover {

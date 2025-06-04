@@ -4,8 +4,15 @@ import Navbar from '../components/layout/Navbar';
 
 const HorarioSemanal: React.FC = () => {
   const [selectedWeek, setSelectedWeek] = useState(0);
-  const [selectedSport, setSelectedSport] = useState('Futsal');
+  const [selectedSport, setSelectedSport] = useState('Natação');
   const [selectedPeriod, setSelectedPeriod] = useState('Todos');
+  const [reservations, setReservations] = useState<Set<string>>(new Set());
+  const [showReservationModal, setShowReservationModal] = useState(false);
+  const [pendingReservation, setPendingReservation] = useState<{
+    timeSlot: TimeSlot;
+    day: Day;
+    court: Court;
+  } | null>(null);
 
   interface TimeSlot {
     code: string;
@@ -58,21 +65,44 @@ const HorarioSemanal: React.FC = () => {
       { id: 1, name: 'Futsal 1', sport: 'Futsal' },
       { id: 2, name: 'Futsal 2', sport: 'Futsal' }
     ],
-    'Basquete': [
-      { id: 3, name: 'Basquete 1', sport: 'Basquete' },
-      { id: 4, name: 'Basquete 2', sport: 'Basquete' }
+    'Natação': [
+      { id: 3, name: 'Piscina Olímpica', sport: 'Natação' }
     ],
-    'Vôlei': [
-      { id: 5, name: 'Vôlei 1', sport: 'Vôlei' },
-      { id: 6, name: 'Vôlei 2', sport: 'Vôlei' }
+    'Basquete': [
+      { id: 5, name: 'Quadra 1', sport: 'Basquete' },
+      { id: 6, name: 'Quadra 2', sport: 'Basquete' }
+    ],
+    'Vôlei de Praia': [
+      { id: 7, name: 'Quadra Areia 1', sport: 'Vôlei de Praia' },
+      { id: 8, name: 'Quadra Areia 2', sport: 'Vôlei de Praia' }
+    ],
+    'Futebol': [
+      { id: 9, name: 'Campo Oficial', sport: 'Futebol' },
+      { id: 10, name: 'Campo Society', sport: 'Futebol' }
+    ],
+    'Atletismo': [
+      { id: 11, name: 'Pista Oficial', sport: 'Atletismo' },
+      { id: 12, name: 'Campo de Saltos', sport: 'Atletismo' }
+    ],
+    'Beach Tennis': [
+      { id: 13, name: 'Quadra Areia 1', sport: 'Beach Tennis' },
+      { id: 14, name: 'Quadra Areia 2', sport: 'Beach Tennis' }
     ],
     'Tênis': [
-      { id: 7, name: 'Tênis 1', sport: 'Tênis' },
-      { id: 8, name: 'Tênis 2', sport: 'Tênis' }
+      { id: 15, name: 'Quadra Saibro 1', sport: 'Tênis' },
+      { id: 16, name: 'Quadra Saibro 2', sport: 'Tênis' }
+    ],
+    'Vôlei': [
+      { id: 17, name: 'Quadra Coberta 1', sport: 'Vôlei' },
+      { id: 18, name: 'Quadra Coberta 2', sport: 'Vôlei' }
     ]
   };
 
   const periods = ['Todos', 'Manhã', 'Tarde', 'Noite'];
+
+  const generateReservationKey = (timeSlot: TimeSlot, day: Day, court: Court, week: number): string => {
+    return `${timeSlot.code}-${day.key}-${court.id}-week${week}`;
+  };
 
   const getAvailability = (timeSlot: TimeSlot, day: Day, court: Court): boolean => {
     const dayCode = day.key;
@@ -80,6 +110,11 @@ const HorarioSemanal: React.FC = () => {
       return false;
     }
     if (timeSlot.code.includes('35') && !['3', '5'].includes(dayCode)) {
+      return false;
+    }
+    
+    const reservationKey = generateReservationKey(timeSlot, day, court, selectedWeek);
+    if (reservations.has(reservationKey)) {
       return false;
     }
     
@@ -107,9 +142,14 @@ const HorarioSemanal: React.FC = () => {
   const getSportIcon = (sport: string): string => {
     const icons: { [key: string]: string } = {
       'Futsal': '⚽',
+      'Natação': '🏊‍♀️',
       'Basquete': '🏀',
-      'Vôlei': '🏐',
-      'Tênis': '🎾'
+      'Vôlei de Praia': '🏐',
+      'Futebol': '⚽',
+      'Atletismo': '🏃‍♂️',
+      'Beach Tennis': '🏸',
+      'Tênis': '🎾',
+      'Vôlei': '🏐'
     };
     return icons[sport] || '🏟️';
   };
@@ -142,6 +182,53 @@ const HorarioSemanal: React.FC = () => {
     return timeSlots.filter(slot => slot.label === selectedPeriod);
   };
 
+  const handleCellClick = (timeSlot: TimeSlot, day: Day, court: Court) => {
+    const isApplicable = isTimeSlotApplicable(timeSlot, day);
+    const isAvailable = isApplicable && getAvailability(timeSlot, day, court);
+    const reservationKey = generateReservationKey(timeSlot, day, court, selectedWeek);
+    
+    if (!isApplicable) return;
+    
+    if (reservations.has(reservationKey)) {
+      // Cancelar reserva
+      const newReservations = new Set(reservations);
+      newReservations.delete(reservationKey);
+      setReservations(newReservations);
+    } else if (isAvailable) {
+      // Fazer nova reserva
+      setPendingReservation({ timeSlot, day, court });
+      setShowReservationModal(true);
+    }
+  };
+
+  const confirmReservation = () => {
+    if (pendingReservation) {
+      const { timeSlot, day, court } = pendingReservation;
+      const reservationKey = generateReservationKey(timeSlot, day, court, selectedWeek);
+      const newReservations = new Set(reservations);
+      newReservations.add(reservationKey);
+      setReservations(newReservations);
+      setShowReservationModal(false);
+      setPendingReservation(null);
+    }
+  };
+
+  const cancelReservation = () => {
+    setShowReservationModal(false);
+    setPendingReservation(null);
+  };
+
+  const getCellStatus = (timeSlot: TimeSlot, day: Day, court: Court): 'available' | 'occupied' | 'reserved' | 'not-applicable' => {
+    const isApplicable = isTimeSlotApplicable(timeSlot, day);
+    if (!isApplicable) return 'not-applicable';
+    
+    const reservationKey = generateReservationKey(timeSlot, day, court, selectedWeek);
+    if (reservations.has(reservationKey)) return 'reserved';
+    
+    const isAvailable = getAvailability(timeSlot, day, court);
+    return isAvailable ? 'available' : 'occupied';
+  };
+
   const selectedCourts = courtsBySport[selectedSport as keyof typeof courtsBySport] || [];
   const filteredTimeSlots = getFilteredTimeSlots();
 
@@ -157,13 +244,18 @@ const HorarioSemanal: React.FC = () => {
               <button className="back-button" onClick={() => window.history.back()}>
                 ← Voltar
               </button>
-              <h1 className="page-title">📅 Horários Disponíveis</h1>
+              <h1 className="page-title">📅 Horários e Reservas</h1>
             </div>
             
             <div className="week-navigation">
               <button 
                 className="week-nav-button"
                 onClick={() => setSelectedWeek(selectedWeek - 1)}
+                disabled={selectedWeek <= 0}
+                style={{ 
+                  opacity: selectedWeek <= 0 ? 0.5 : 1,
+                  cursor: selectedWeek <= 0 ? 'not-allowed' : 'pointer'
+                }}
               >
                 ← Anterior
               </button>
@@ -225,6 +317,10 @@ const HorarioSemanal: React.FC = () => {
               <span>Disponível</span>
             </div>
             <div className="legend-item">
+              <div className="legend-color reserved"></div>
+              <span>Minha Reserva</span>
+            </div>
+            <div className="legend-item">
               <div className="legend-color occupied"></div>
               <span>Ocupado</span>
             </div>
@@ -232,7 +328,7 @@ const HorarioSemanal: React.FC = () => {
               <div className="legend-color not-applicable"></div>
               <span>N/A</span>
             </div>
-            <span className="legend-info">246=Seg/Qua/Sex | 35=Ter/Qui</span>
+            <span className="legend-info">246=Seg/Qua/Sex | 35=Ter/Qui | Clique para reservar</span>
           </div>
 
           {/* Grid da Modalidade Selecionada */}
@@ -275,21 +371,23 @@ const HorarioSemanal: React.FC = () => {
                       </div>
                       
                       {weekDates.map((day) => {
-                        const isApplicable = isTimeSlotApplicable(timeSlot, day);
-                        const isAvailable = isApplicable && getAvailability(timeSlot, day, court);
+                        const status = getCellStatus(timeSlot, day, court);
+                        const reservationKey = generateReservationKey(timeSlot, day, court, selectedWeek);
                         
                         return (
                           <div
                             key={day.key}
-                            className={`schedule-cell ${
-                              !isApplicable ? 'not-applicable' :
-                              isAvailable ? 'available' : 'occupied'
-                            }`}
+                            className={`schedule-cell ${status}`}
+                            onClick={() => handleCellClick(timeSlot, day, court)}
                           >
                             <div className={`status-dot ${
-                              !isApplicable ? 'gray' :
-                              isAvailable ? 'green' : 'red'
+                              status === 'not-applicable' ? 'gray' :
+                              status === 'available' ? 'green' :
+                              status === 'reserved' ? 'blue' : 'red'
                             }`}></div>
+                            {status === 'reserved' && (
+                              <div className="reservation-icon">📌</div>
+                            )}
                           </div>
                         );
                       })}
@@ -300,6 +398,50 @@ const HorarioSemanal: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* Modal de Confirmação */}
+        {showReservationModal && pendingReservation && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <div className="modal-header">
+                <h3>Confirmar Reserva</h3>
+                <button className="modal-close" onClick={cancelReservation}>×</button>
+              </div>
+              <div className="modal-content">
+                <div className="reservation-details">
+                  <div className="detail-item">
+                    <span className="detail-label">Modalidade:</span>
+                    <span className="detail-value">
+                      {getSportIcon(pendingReservation.court.sport)} {pendingReservation.court.sport}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Local:</span>
+                    <span className="detail-value">{pendingReservation.court.name}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Data:</span>
+                    <span className="detail-value">
+                      {pendingReservation.day.label} ({pendingReservation.day.date})
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Horário:</span>
+                    <span className="detail-value">{pendingReservation.timeSlot.time}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button className="btn-secondary" onClick={cancelReservation}>
+                  Cancelar
+                </button>
+                <button className="btn-primary" onClick={confirmReservation}>
+                  Confirmar Reserva
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
