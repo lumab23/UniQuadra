@@ -1,14 +1,15 @@
 import { Schema, model, Document, Types } from 'mongoose';
-import { IAluno } from '../models/Aluno';
+import { IAluno } from './Aluno';
 
 export interface ICarteirinha extends Document {
     aluno: Types.ObjectId | IAluno;
     codigo: string;
     dataEmissao: Date;
     validade: Date;
-    status: 'ativa' | 'vencida';
+    status: 'ativa' | 'vencida' | 'inativa' | 'suspensa';
     createdAt: Date;
     updatedAt: Date;
+    isValida(): boolean;
 }
 
 const CarteirinhaSchema = new Schema<ICarteirinha>({
@@ -34,24 +35,24 @@ const CarteirinhaSchema = new Schema<ICarteirinha>({
     },
     status: {
         type: String,
-        enum: ['ativa', 'inativa', 'suspensa', 'vencida'],
+        enum: ['ativa', 'vencida', 'inativa', 'suspensa'],
         default: 'ativa',
         required: true
     },
 }, {
     timestamps: true
-})
-
-// verificar se a carteirinha está valida
-CarteirinhaSchema.method('isValida', function (): boolean {
-  const hoje = new Date();
-  return this.validade > hoje && this.status === 'ativa';
 });
 
+// Método para verificar se a carteirinha está válida
+CarteirinhaSchema.method('isValida', function (): boolean {
+    const hoje = new Date();
+    return this.validade > hoje && this.status === 'ativa';
+});
 
-// melhorar a performance das consultas
+// Índices para melhorar a performance das consultas
 CarteirinhaSchema.index({ aluno: 1 });
 CarteirinhaSchema.index({ validade: 1 });
 CarteirinhaSchema.index({ status: 1 });
+CarteirinhaSchema.index({ codigo: 1 });
 
 export default model<ICarteirinha>('Carteirinha', CarteirinhaSchema);

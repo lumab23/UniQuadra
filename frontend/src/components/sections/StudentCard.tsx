@@ -3,7 +3,6 @@ import "../sections/styles/StudentCard.css";
 interface StudentCardProps {
   name?: string;
   registration?: string;
-  course?: string;
   sport?: string;
   validUntil?: string;
   className?: string;
@@ -12,7 +11,6 @@ interface StudentCardProps {
 const StudentCard = ({ 
   name = "João Silva",
   registration = "2024001", 
-  course = "Engenharia de Software",
   sport = "Todas as modalidades",
   validUntil = "12/2025",
   className = "student-id-card"
@@ -39,10 +37,6 @@ const StudentCard = ({
           <div className="detail-row">
             <span className="detail-label">Matrícula</span>
             <span className="detail-value">{registration}</span>
-          </div>
-          <div className="detail-row">
-            <span className="detail-label">Curso</span>
-            <span className="detail-value">{course}</span>
           </div>
           <div className="detail-row">
             <span className="detail-label">Modalidades</span>

@@ -91,7 +91,6 @@ const Carteirinha = () => {
               <StudentCard 
                 name="Jane Doe"
                 registration="1234567890"
-                course="Educação Física"
                 sport="Selecionada"
                 validUntil="12/2024"
                 className={cardCreated ? "carteirinha-main-student-id-card" : "student-id-card"}

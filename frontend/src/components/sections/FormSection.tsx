@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "../sections/styles/FormSection.css";
 import Toast from "../ui/Toast";
+import api from "../../services/api";
 
 interface FormSectionProps {
   onCardCreated: () => void;
@@ -68,30 +69,37 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
       setToast({ message: "Preencha os dados para criar a carteirinha", type: "error" });
       return;
     }
-    // Validação específica para nova carteirinha
-    const isValidNewStudent = newStudentData.matricula.length === 7 && 
-                             newStudentData.email.endsWith('@edu.unifor.br');
+
+    const isValidNewStudent = newStudentData.matricula.length === 7 &&
+                              newStudentData.email.endsWith('@edu.unifor.br');
     if (!isValidNewStudent) {
       setToast({ message: "Matrícula deve ter 7 dígitos e email deve ser @edu.unifor.br!", type: "error" });
       return;
     }
+
     setLoading(true);
     try {
-      // Simular envio
-      await new Promise(res => setTimeout(res, 1000));
-      // Sucesso
+      // 1. Criar aluno
+      const alunoResponse = await api.post("/alunos", newStudentData);
+      const alunoId = alunoResponse.data._id;
+
+      // 2. Emitir carteirinha com o alunoId
+      await api.post("/carteirinhas/emitir", { alunoId });
+
       setToast({ message: "Carteirinha criada com sucesso!", type: "success" });
       setTimeout(() => {
         setIsAuthenticated(true);
       }, 1200);
-    } catch (err) {
-      setToast({ message: "Erro ao criar carteirinha. Tente novamente.", type: "error" });
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Erro ao criar carteirinha. Tente novamente.";
+      setToast({ message: msg, type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExistingStudentSubmit = (e: React.FormEvent) => {
+
+  const handleExistingStudentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateExistingStudentForm()) {
       setToast({ message: "Preencha os dados para acessar a carteirinha, fazer reservas e ver suas reservas", type: "error" });
@@ -100,11 +108,28 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
     // Em produção, aqui seria feita uma chamada para a API
     const isValidStudent = existingStudentData.matricula.length === 7 && 
                           existingStudentData.email.endsWith('@edu.unifor.br');
-    if (isValidStudent) {
-      setIsAuthenticated(true);
-      setToast({ message: "Acesso liberado!", type: "success" });
-    } else {
+
+    if (!isValidStudent) {
       setToast({ message: "Matrícula ou email inválidos!", type: "error" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await api.post("/carteirinhas/validar", existingStudentData);
+      if (response.data.valid) {
+        setToast({ message: "Acesso liberado!", type: "success" });
+        setTimeout(() => {
+          setIsAuthenticated(true);
+        }, 1200);
+      } else {
+        setToast({ message: "Carteirinha não encontrada!", type: "error" });
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Erro ao validar carteirinha.";
+      setToast({ message: msg, type: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 
 // busca todas as carteirinhas
 export const buscarTodasCarteirinhas = async (): Promise<ICarteirinha[]> => {
-    return await Carteirinha.find().populate('aluno').sort({ createdAt: - 1 });
+    return await Carteirinha.find().populate('aluno').sort({ createdAt: -1 });
 }
 
 // busca uma carteirinha pelo id
@@ -16,7 +16,7 @@ export const buscarCarteirinhaPorCodigo = async (codigo: string): Promise<ICarte
     return await Carteirinha.findOne({ codigo }).populate('aluno');
 }
 
-// busca carteirinha pelo id do aluno
+// busca carteirinhas pelo id do aluno
 export const buscarCarteirinhaPeloAlunoId = async (alunoId: string): Promise<ICarteirinha[]> => {
     return await Carteirinha.find({ aluno: alunoId }).populate('aluno').sort({ createdAt: -1 });
 }
@@ -26,19 +26,20 @@ export const buscarCarteirinhaPorStatus = async (status: string): Promise<ICarte
     return await Carteirinha.find({ status }).populate('aluno').sort({ createdAt: -1 });
 }
 
-// cria uma nota carteirinha
+// cria uma nova carteirinha
 export const criarCarteirinha = async (dadosCarteirinha: {
     aluno: string;
     codigo: string;
     dataEmissao?: Date;
     validade: Date;
-    status?: 'ativa' |'vencida';
+    status?: 'ativa' | 'vencida' | 'inativa' | 'suspensa';
 }): Promise<ICarteirinha> => {
     const carteirinha = new Carteirinha({
         ...dadosCarteirinha,
         aluno: new Types.ObjectId(dadosCarteirinha.aluno)
     });
-    return await carteirinha.save();
+    const carteirinhaSalva = await carteirinha.save();
+    return await carteirinhaSalva.populate('aluno');
 }
 
 // atualiza uma carteirinha
@@ -47,7 +48,7 @@ export const atualizarCarteirinha = async (
     dadosCarteirinha: {
         codigo?: string;
         validade?: Date;
-        status?: 'ativa' |'vencida';
+        status?: 'ativa' | 'vencida' | 'inativa' | 'suspensa';
     }
 ): Promise<ICarteirinha | null> => {
     return await Carteirinha.findByIdAndUpdate(id, dadosCarteirinha, { new: true }).populate('aluno');
@@ -56,7 +57,7 @@ export const atualizarCarteirinha = async (
 // atualiza o status da carteirinha
 export const atualizarStatusCarteirinha = async (
     id: string,
-    status: 'ativa' |'vencida'
+    status: 'ativa' | 'vencida' | 'inativa' | 'suspensa'
 ): Promise<ICarteirinha | null> => {
     return await Carteirinha.findByIdAndUpdate(id, { status }, { new: true }).populate('aluno');
 }
@@ -66,50 +67,51 @@ export const removerCarteirinha = async (id: string): Promise<ICarteirinha | nul
     return await Carteirinha.findByIdAndDelete(id).populate('aluno');
 }
 
-// verifica carterinhas vencidas e atualiza o status
+// verifica carteirinhas vencidas e atualiza o status
 export const verificarCarteirinhasVencidas = async (): Promise<{
-  modifiedCount: number;
-  alreadyExpiredCount: number;
-  expiredCarteirinhas: any[];
+    modifiedCount: number;
+    alreadyExpiredCount: number;
+    expiredCarteirinhas: ICarteirinha[];
 }> => {
- 
-  const agora = new Date();
-  console.log('Verificando carteirinhas vencidas em:', agora);
-  
-  // encontra carteirinhas ativas que estão vencidas
-  const carteirinhasParaAtualizar = await Carteirinha.find({
-    validade: { $lt: agora },
-    status: 'ativa'
-  }).populate('aluno');
-  
-  console.log(`Encontradas ${carteirinhasParaAtualizar.length} carteirinhas ativas e vencidas para atualizar`);
-
-  // Find carteirinhas that are already marked as expired
-  const carteirinhasJaVencidas = await Carteirinha.find({
-    status: 'vencida'
-  }).populate('aluno');
-  
-  console.log(`Existem ${carteirinhasJaVencidas.length} carteirinhas já marcadas como vencidas`);
-  
-  // Atualiza carteirinhas ativas que estão vencidas
-  let resultado = { modifiedCount: 0 };
-  if (carteirinhasParaAtualizar.length > 0) {
-    resultado = await Carteirinha.updateMany(
-      {
+    const agora = new Date();
+    console.log('Repository: Verificando carteirinhas vencidas em:', agora.toISOString());
+    
+    // Encontra carteirinhas ativas que estão vencidas
+    const carteirinhasParaAtualizar = await Carteirinha.find({
         validade: { $lt: agora },
         status: 'ativa'
-      },
-      {
-        $set: { status: 'vencida' }
-      }
-    );
-    console.log('Resultado da atualização:', resultado);
-  }
-  
+    }).populate('aluno');
+    
+    console.log(`Repository: Encontradas ${carteirinhasParaAtualizar.length} carteirinhas ativas e vencidas para atualizar`);
 
-  return {
-    modifiedCount: resultado.modifiedCount,
-    alreadyExpiredCount: carteirinhasJaVencidas.length,
-    expiredCarteirinhas: [...carteirinhasParaAtualizar, ...carteirinhasJaVencidas]
-  };
+    // Encontra carteirinhas que já estão marcadas como vencidas
+    const carteirinhasJaVencidas = await Carteirinha.find({
+        status: 'vencida'
+    }).populate('aluno');
+    
+    console.log(`Repository: Existem ${carteirinhasJaVencidas.length} carteirinhas já marcadas como vencidas`);
+    
+    // Atualiza carteirinhas ativas que estão vencidas
+    let resultado = { modifiedCount: 0 };
+    if (carteirinhasParaAtualizar.length > 0) {
+        resultado = await Carteirinha.updateMany(
+            {
+                validade: { $lt: agora },
+                status: 'ativa'
+            },
+            {
+                $set: { status: 'vencida' }
+            }
+        );
+        console.log('Repository: Resultado da atualização:', resultado);
+    }
+
+    // Retorna todas as carteirinhas vencidas (atualizadas + já vencidas)
+    const todasVencidas = [...carteirinhasParaAtualizar, ...carteirinhasJaVencidas];
+
+    return {
+        modifiedCount: resultado.modifiedCount,
+        alreadyExpiredCount: carteirinhasJaVencidas.length,
+        expiredCarteirinhas: todasVencidas
+    };
 }

@@ -76,20 +76,102 @@ export const buscarAlunoPorMatriculaService = async (matricula: string): Promise
     }
 }
 
+// serviço para validar login do aluno (matrícula + email)
+export const validarLoginAlunoService = async (matricula: string, email: string): Promise<HttpResponseModel> => {
+    try {
+        console.log('Service: Validando login do aluno:', { matricula, email });
+        
+        const aluno = await AlunoRepository.buscarAlunoPorMatriculaEEmail(matricula, email);
+
+        if (aluno) {
+            console.log('Service: Login válido, aluno encontrado:', aluno._id);
+            return await HttpResponse.ok({
+                message: "Login válido",
+                aluno: aluno
+            });
+        } else {
+            console.log('Service: Login inválido - aluno não encontrado');
+            return {
+                statusCode: StatusCode.UNAUTHORIZED,
+                body: {
+                    message: "Matrícula ou email inválidos"
+                }
+            };
+        }
+    } catch (error) {
+        console.error("Erro ao validar login do aluno: ", error);
+        return {
+            statusCode: StatusCode.INTERNAL_SERVER_ERROR,
+            body: {
+                message: "Erro ao validar login"
+            }
+        }
+    }
+}
+
 // serviço para criar um novo aluno
-export const criarAlunoService = async (dadosAluno: { nome: string; matricula: string }): Promise<HttpResponseModel> => {
+export const criarAlunoService = async (dadosAluno: { 
+    nome: string; 
+    email: string; 
+    matricula: string; 
+    esporte: string 
+}): Promise<HttpResponseModel> => {
     console.log('Service: Iniciando serviço de criação de aluno');
     try {
-        // ver se já tem um aluno com a mesma matrícula
-        console.log('Service: Verificando matrícula existente:', dadosAluno.matricula);
-        const alunoExistente = await AlunoRepository.buscarAlunoPorMatricula(dadosAluno.matricula);
+        // Validações básicas
+        if (!dadosAluno.nome || !dadosAluno.email || !dadosAluno.matricula || !dadosAluno.esporte) {
+            return {
+                statusCode: StatusCode.BAD_REQUEST,
+                body: {
+                    message: "Todos os campos são obrigatórios"
+                }
+            }
+        }
 
-        if (alunoExistente) {
+        // Validar formato da matrícula
+        if (!/^\d{7}$/.test(dadosAluno.matricula)) {
+            return {
+                statusCode: StatusCode.BAD_REQUEST,
+                body: {
+                    message: "Matrícula deve ter exatamente 7 dígitos"
+                }
+            }
+        }
+
+        // Validar formato do email
+        if (!/@edu\.unifor\.br$/.test(dadosAluno.email)) {
+            return {
+                statusCode: StatusCode.BAD_REQUEST,
+                body: {
+                    message: "Email deve ser do domínio @edu.unifor.br"
+                }
+            }
+        }
+
+        // Verificar se já existe um aluno com a mesma matrícula
+        console.log('Service: Verificando matrícula existente:', dadosAluno.matricula);
+        const alunoExistentePorMatricula = await AlunoRepository.buscarAlunoPorMatricula(dadosAluno.matricula);
+
+        if (alunoExistentePorMatricula) {
             console.log('Service: Matrícula já existe');
             return {
                 statusCode: StatusCode.CONFLICT,
                 body: {
                     message: "Já existe um aluno com essa matrícula"
+                }
+            }
+        }
+
+        // Verificar se já existe um aluno com o mesmo email
+        console.log('Service: Verificando email existente:', dadosAluno.email);
+        const alunoExistentePorEmail = await AlunoRepository.buscarAlunoPorEmail(dadosAluno.email);
+
+        if (alunoExistentePorEmail) {
+            console.log('Service: Email já existe');
+            return {
+                statusCode: StatusCode.CONFLICT,
+                body: {
+                    message: "Já existe um aluno com esse email"
                 }
             }
         }
@@ -102,8 +184,31 @@ export const criarAlunoService = async (dadosAluno: { nome: string; matricula: s
             body: novoAluno
         }
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Service: Erro ao criar aluno:", error);
+        
+        // Tratar erros de validação do Mongoose
+        if (error.name === 'ValidationError') {
+            return {
+                statusCode: StatusCode.BAD_REQUEST,
+                body: {
+                    message: "Dados inválidos",
+                    details: error.message
+                }
+            }
+        }
+        
+        // Tratar erro de duplicação (índice único)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern)[0];
+            return {
+                statusCode: StatusCode.CONFLICT,
+                body: {
+                    message: `Já existe um aluno com esse ${field}`
+                }
+            }
+        }
+        
         return {
             statusCode: StatusCode.INTERNAL_SERVER_ERROR,
             body: {
@@ -118,14 +223,16 @@ export const atualizarAlunoService = async (
     id: string,
     dadosAtualizadosAluno: {
         nome?: string;
-        matricula?: string
+        email?: string;
+        matricula?: string;
+        esporte?: string;
     }
 ): Promise<HttpResponseModel> => {
     
     try {
         const alunoExistente = await AlunoRepository.buscarAlunoPorId(id);
 
-        // vericar se o aluno existe
+        // verificar se o aluno existe
         if (!alunoExistente) {
             return {
                 statusCode: StatusCode.NOT_FOUND,
@@ -135,7 +242,7 @@ export const atualizarAlunoService = async (
             }
         }
 
-        // se estiver tentando atualizar a matrícula, vai verificar se já existe outro aluno come a mesma matrícula
+        // se estiver tentando atualizar a matrícula, vai verificar se já existe outro aluno com a mesma matrícula
         if (dadosAtualizadosAluno.matricula && dadosAtualizadosAluno.matricula !== alunoExistente.matricula) {
             const alunoComMesmaMatricula = await AlunoRepository.buscarAlunoPorMatricula(dadosAtualizadosAluno.matricula);
 
@@ -144,6 +251,20 @@ export const atualizarAlunoService = async (
                     statusCode: StatusCode.CONFLICT,
                     body: {
                         message: "Já existe um aluno com essa matrícula"
+                    }
+                }
+            }
+        }
+
+        // se estiver tentando atualizar o email, vai verificar se já existe outro aluno com o mesmo email
+        if (dadosAtualizadosAluno.email && dadosAtualizadosAluno.email !== alunoExistente.email) {
+            const alunoComMesmoEmail = await AlunoRepository.buscarAlunoPorEmail(dadosAtualizadosAluno.email);
+
+            if (alunoComMesmoEmail && alunoComMesmoEmail.id !== id) {
+                return {
+                    statusCode: StatusCode.CONFLICT,
+                    body: {
+                        message: "Já existe um aluno com esse email"
                     }
                 }
             }
