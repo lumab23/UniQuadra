@@ -11,6 +11,7 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type?: "error" | "success" } | null>(null);
+  const [showForm, setShowForm] = useState(true);
 
   const [newStudentData, setNewStudentData] = useState({
     nome: "",
@@ -24,10 +25,11 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
     email: ""
   });
 
-  // Chama onCardCreated quando o usuário é autenticado
+  // Chama onCardCreated quando o usuário é autenticado e o toast já sumiu
   useEffect(() => {
     if (isAuthenticated) {
       const timer = setTimeout(() => {
+        setShowForm(false);
         onCardCreated();
       }, 2000); // Aguarda 2 segundos para mostrar a mensagem de sucesso
       return () => clearTimeout(timer);
@@ -109,6 +111,7 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
   const resetForm = () => {
     setHasCard(null);
     setIsAuthenticated(false);
+    setShowForm(true);
     setNewStudentData({
       nome: "",
       email: "",
@@ -121,30 +124,7 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
     });
   };
 
-  // Se o usuário foi autenticado, retorna um indicador
-  if (isAuthenticated) {
-    return (
-      <section className="success-section">
-        <div className="container">
-          <div className="success-card">
-            <div className="success-icon">✅</div>
-            <h2 className="success-title">
-              {hasCard ? "Acesso Liberado!" : "Carteirinha Criada!"}
-            </h2>
-            <p className="success-message">
-              {hasCard 
-                ? "Sua carteirinha foi verificada com sucesso." 
-                : "Sua carteirinha foi criada com sucesso!"
-              }
-            </p>
-            <p className="success-message">
-              Aguarde alguns segundos...
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  if (!showForm) return null;
 
   return (
     <section className="form-section">
@@ -321,7 +301,7 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
           </div>
         )}
       </div>
-      {toast && !isAuthenticated && (
+      {toast && (
         <Toast
           message={toast.message}
           type={toast.type}

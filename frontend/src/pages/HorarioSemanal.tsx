@@ -407,7 +407,7 @@ const HorarioSemanal: React.FC = () => {
                             const reservationKey = generateReservationKey(timeSlot, day, court, selectedWeek);
                             return (
                               <div
-                                key={day.key}
+                                key={reservationKey}
                                 className={`schedule-cell ${status}`}
                                 onClick={() => handleCellClick(timeSlot, day, court)}
                               >
