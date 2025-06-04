@@ -2,7 +2,7 @@ import Navbar from "../components/layout/Navbar";
 import FormSection from "../components/sections/FormSection";
 import StudentCard from "../components/sections/StudentCard";
 import "../pages/styles/Carteirinha.css";
-import HorarioSemanal from "./HorarioSemanal";
+import HorarioSemanal from "../pages/HorarioSemanal";
 import { useState } from "react";
 
 const Carteirinha = () => {
@@ -19,18 +19,18 @@ const Carteirinha = () => {
   };
 
   return (
-    <div className={`carteirinha-page ${cardCreated ? 'card-created' : ''}`}>
+    <div className={`carteirinha-main-page ${cardCreated ? 'carteirinha-card-created' : ''}`}>
       <Navbar />
       
       {/* Hero Section */}
-      <section id="carteirinha" className="carteirinha-hero-section">
-        <div className="carteirinha-hero-container">
-          <div className="carteirinha-hero-content">
-            <div className="carteirinha-hero-text">
-              <p className="carteirinha-hero-subtitle">
+      <section id="carteirinha" className="carteirinha-main-hero-section">
+        <div className="carteirinha-main-hero-container">
+          <div className="carteirinha-main-hero-content">
+            <div className="carteirinha-main-hero-text">
+              <p className="carteirinha-main-hero-subtitle">
                 {cardCreated ? "Parabéns!" : "Um passo para a sua carteirinha!"}
               </p>
-              <h1 className="carteirinha-hero-title">
+              <h1 className="carteirinha-main-hero-title">
                 {cardCreated ? (
                   <>
                     Agora você tem sua
@@ -47,7 +47,7 @@ const Carteirinha = () => {
               </h1>
             </div>
             
-            <div className="carteirinha-hero-card">
+            <div className="carteirinha-main-hero-card">
               {/* Usar o componente StudentCard reutilizável */}
               <StudentCard 
                 name="Jane Doe"
@@ -59,8 +59,8 @@ const Carteirinha = () => {
             </div>
           </div>
           
-          <div className="carteirinha-scroll-indicator">
-            <div className="carteirinha-scroll-arrow">
+          <div className="carteirinha-main-scroll-indicator">
+            <div className="carteirinha-main-scroll-arrow">
               <span>↓</span>
             </div>
           </div>
@@ -72,21 +72,21 @@ const Carteirinha = () => {
 
       {/* Schedule Section - só mostra se a carteirinha foi criada */}
       {cardCreated && (
-        <section className="schedule-section">
-          <div className="schedule-container">
-            <div className="schedule-content">
-              <div className="schedule-image">
+        <section className="carteirinha-main-schedule-section">
+          <div className="carteirinha-main-schedule-container">
+            <div className="carteirinha-main-schedule-content">
+              <div className="carteirinha-main-schedule-image">
                 <img 
                   src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
                   alt="Estudantes jogando esportes" 
                 />
               </div>
               
-              <div className="schedule-text">
-                <h2 className="schedule-title">
+              <div className="carteirinha-main-schedule-text">
+                <h2 className="carteirinha-main-schedule-title">
                   Reservar espaço
                 </h2>
-                <button className="schedule-button" onClick={() => setShowSchedule(true)}>
+                <button className="carteirinha-main-schedule-button" onClick={() => setShowSchedule(true)}>
                   HORÁRIOS
                 </button>
               </div>
