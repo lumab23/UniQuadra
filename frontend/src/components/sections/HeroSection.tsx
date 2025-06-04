@@ -2,6 +2,15 @@ import Button from "../ui/Button";
 import "../sections/styles/HeroSection.css";
 
 const HeroSection = () => {
+  const handleStartClick = () => {
+    const el = document.querySelector('#card-section');
+    if (el) {
+      const navbarHeight = 80;
+      const y = (el as HTMLElement).offsetTop - navbarHeight;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="hero-section">
       <div className="hero-overlay"></div>
@@ -19,10 +28,7 @@ const HeroSection = () => {
           Sua plataforma esportiva completa para uma vida mais ativa e saudável
         </p>
         <div className="hero-buttons">
-          <Button variant="white" size="lg">Começar Agora</Button>
-          <Button variant="secondary" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600">
-            Saiba Mais
-          </Button>
+          <Button variant="white" size="lg" onClick={handleStartClick}>Começar Agora</Button>
         </div>
       </div>
     </section>

@@ -846,3 +846,116 @@
     font-size: 12px;
   }
 }
+
+/* Abas */
+.tabs-container {
+  display: flex;
+  gap: 0;
+  background: #f3f4f6;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  margin-bottom: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.tab-button {
+  flex: 1;
+  padding: 16px 0;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  border-bottom: 3px solid transparent;
+}
+.tab-button.active {
+  background: white;
+  color: #2563eb;
+  border-bottom: 3px solid #2563eb;
+  z-index: 1;
+}
+
+/* Seção Minhas Reservas */
+.reservas-list-section {
+  background: white;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 16px rgba(59,130,246,0.07);
+  max-width: 900px;
+  margin: 0 auto 32px auto;
+  padding: 32px 24px 40px 24px;
+}
+.reservas-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.reservas-subsection {
+  margin-bottom: 32px;
+}
+.reservas-subsection h3 {
+  font-size: 18px;
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.reservas-empty {
+  color: #6b7280;
+  font-size: 15px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.reservas-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.reserva-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: #f8fafc;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.04);
+  padding: 18px 20px;
+  font-size: 15px;
+  color: #1e293b;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+.reserva-item.futura {
+  border-left: 5px solid #10b981;
+}
+.reserva-item.passada {
+  border-left: 5px solid #9ca3af;
+  opacity: 0.7;
+}
+.reserva-icon {
+  font-size: 22px;
+  margin-right: 4px;
+}
+@media (max-width: 600px) {
+  .reservas-list-section {
+    padding: 18px 6px 24px 6px;
+  }
+  .reserva-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 14px;
+    padding: 12px 10px;
+  }
+  .reservas-title {
+    font-size: 19px;
+  }
+  .reservas-subsection h3 {
+    font-size: 15px;
+  }
+}

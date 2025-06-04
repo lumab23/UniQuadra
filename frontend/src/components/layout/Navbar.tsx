@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 
@@ -7,7 +7,21 @@ const Navbar = () => {
   const location = useLocation();
   const [ativo, setAtivo] = useState("Home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showNavItems, setShowNavItems] = useState(true);
   
+  useEffect(() => {
+    // Esconde os itens de navegação se estiver em uma rota admin
+    setShowNavItems(!location.pathname.startsWith('/admin'));
+    // Sincroniza underline com a rota
+    if (location.pathname === "/carteirinha") {
+      setAtivo("Carteirinha");
+    } else if (location.pathname === "/") {
+      setAtivo("Home");
+    } else {
+      setAtivo(""); // Nenhum ativo para outras rotas
+    }
+  }, [location.pathname]);
+
   interface NavItem {
     label: string;
     href: string;
@@ -26,6 +40,9 @@ const Navbar = () => {
     if (item.type === "route") {
       // Navegação para outra página
       navigate(item.href);
+      if (item.href === "/carteirinha") {
+        window.scrollTo({ top: 0, behavior: "auto" });
+      }
       return;
     }
 
@@ -78,7 +95,7 @@ const Navbar = () => {
   };
 
   const handleAdminClick = (): void => {
-    // Por enquanto apenas um placeholder - futuramente será a rota de login do admin
+    setShowNavItems(false);
     navigate("/admin/login");
     console.log("Unifor Sports Online clicked - Admin login");
   };
@@ -96,17 +113,19 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="desktop-nav">
-            {navItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => handleNavClick(item)}
-                className={`nav-button ${ativo === item.label ? 'active' : ''}`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+          {showNavItems && (
+            <div className="desktop-nav">
+              {navItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavClick(item)}
+                  className={`nav-button ${ativo === item.label ? 'active' : ''}`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Admin Section */}
           <div className="admin-section">
@@ -119,22 +138,24 @@ const Navbar = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="mobile-menu-btn-container">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="mobile-menu-btn"
-            >
-              <div className={`hamburger ${mobileMenuOpen ? 'open' : ''}`}>
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-            </button>
-          </div>
+          {showNavItems && (
+            <div className="mobile-menu-btn-container">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="mobile-menu-btn"
+              >
+                <div className={`hamburger ${mobileMenuOpen ? 'open' : ''}`}>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Mobile menu */}
-        {mobileMenuOpen && (
+        {mobileMenuOpen && showNavItems && (
           <div className="mobile-menu">
             {navItems.map((item) => (
               <button

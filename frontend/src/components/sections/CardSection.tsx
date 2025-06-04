@@ -11,23 +11,8 @@ const CardSection = () => {
     navigate('/carteirinha');
   };
 
-  const handleLearnMore = () => {
-  // Scroll para seção de modalidades ou outras informações
-    const modalidadesSection = document.querySelector('#modalidades');
-    if (modalidadesSection) {
-      const navbarHeight = 80;
-      const elementPosition = (modalidadesSection as HTMLElement).offsetTop - navbarHeight;
-      
-      window.scrollTo({
-        top: elementPosition,
-        behavior: "smooth"
-      });
-    }
-  };
-
-
   return (
-    <section className="card-section">
+    <section className="card-section" id="card-section">
       <div className="section-container">
         <div className="section-grid">
           <div className="section-content">
@@ -60,9 +45,6 @@ const CardSection = () => {
             <div className="section-buttons">
               <Button variant="white" size="lg" onClick={handleCreateCard}>
                 Criar Carteirinha
-              </Button>
-              <Button variant="secondary" onClick={handleLearnMore} size="lg" className="saiba-mais-button">
-                Saiba Mais
               </Button>
             </div>
           </div>

@@ -85,8 +85,6 @@
 
 .hero-buttons {
   display: flex;
-  flex-direction: column;
-  gap: 24px;
   justify-content: center;
 }
 
@@ -121,12 +119,6 @@
 }
 
 /* Responsive Design */
-@media (min-width: 640px) {
-  .hero-buttons {
-    flex-direction: row;
-  }
-}
-
 @media (min-width: 768px) {
   .hero-title {
     font-size: 72px;
