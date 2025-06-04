@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "../sections/styles/FormSection.css";
+import Toast from "../ui/Toast";
 
 interface FormSectionProps {
   onCardCreated: () => void;
@@ -8,8 +9,8 @@ interface FormSectionProps {
 const FormSection = ({ onCardCreated }: FormSectionProps) => {
   const [hasCard, setHasCard] = useState<boolean | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [popupMessage, setPopupMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type?: "error" | "success" } | null>(null);
 
   const [newStudentData, setNewStudentData] = useState({
     nome: "",
@@ -23,24 +24,12 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
     email: ""
   });
 
-  useEffect(() => {
-    if (showPopup) {
-      const timer = setTimeout(() => {
-        setShowPopup(false);
-      }, 3000); // Fecha após 3 segundos
-
-      // Limpa o timer se o componente for desmontado ou o popup for fechado manualmente
-      return () => clearTimeout(timer);
-    }
-  }, [showPopup]);
-
   // Chama onCardCreated quando o usuário é autenticado
   useEffect(() => {
     if (isAuthenticated) {
       const timer = setTimeout(() => {
         onCardCreated();
       }, 2000); // Aguarda 2 segundos para mostrar a mensagem de sucesso
-
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated, onCardCreated]);
@@ -71,51 +60,49 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
     return matricula.trim() !== "" && email.trim() !== "";
   };
 
-  const handleNewStudentSubmit = (e: React.FormEvent) => {
+  const handleNewStudentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateNewStudentForm()) {
-      setPopupMessage("Preencha os dados para criar a carteirinha");
-      setShowPopup(true);
+      setToast({ message: "Preencha os dados para criar a carteirinha", type: "error" });
       return;
     }
-    
     // Validação específica para nova carteirinha
     const isValidNewStudent = newStudentData.matricula.length === 7 && 
                              newStudentData.email.endsWith('@edu.unifor.br');
-    
     if (!isValidNewStudent) {
-      setPopupMessage("Matrícula deve ter 7 dígitos e email deve ser @edu.unifor.br!");
-      setShowPopup(true);
+      setToast({ message: "Matrícula deve ter 7 dígitos e email deve ser @edu.unifor.br!", type: "error" });
       return;
     }
-    
-    console.log("Dados do novo estudante:", newStudentData);
-    // Lógica para criar nova carteirinha
-    setIsAuthenticated(true);
+    setLoading(true);
+    try {
+      // Simular envio
+      await new Promise(res => setTimeout(res, 1000));
+      // Sucesso
+      setToast({ message: "Carteirinha criada com sucesso!", type: "success" });
+      setTimeout(() => {
+        setIsAuthenticated(true);
+      }, 1200);
+    } catch (err) {
+      setToast({ message: "Erro ao criar carteirinha. Tente novamente.", type: "error" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExistingStudentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateExistingStudentForm()) {
-      setPopupMessage("Preencha os dados para acessar a carteirinha, fazer reservas e ver suas reservas");
-      setShowPopup(true);
+      setToast({ message: "Preencha os dados para acessar a carteirinha, fazer reservas e ver suas reservas", type: "error" });
       return;
     }
-    
-    console.log("Dados do estudante existente:", existingStudentData);
-    
     // Em produção, aqui seria feita uma chamada para a API
     const isValidStudent = existingStudentData.matricula.length === 7 && 
                           existingStudentData.email.endsWith('@edu.unifor.br');
-    
     if (isValidStudent) {
       setIsAuthenticated(true);
-      console.log("Estudante autenticado com sucesso!");
+      setToast({ message: "Acesso liberado!", type: "success" });
     } else {
-      setPopupMessage("Matrícula ou email inválidos!");
-      setShowPopup(true);
+      setToast({ message: "Matrícula ou email inválidos!", type: "error" });
     }
   };
 
@@ -334,20 +321,12 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
           </div>
         )}
       </div>
-
-      {showPopup && (
-        <div className="popup-overlay">
-          <div className="popup-card">
-            <div className="popup-icon">⚠️</div>
-            <p className="popup-message">{popupMessage}</p>
-            <button 
-              onClick={() => setShowPopup(false)}
-              className="popup-close-button"
-            >
-              OK
-            </button>
-          </div>
-        </div>
+      {toast && !isAuthenticated && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
     </section>
   );

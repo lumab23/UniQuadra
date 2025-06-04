@@ -2,8 +2,12 @@ import Button from "../ui/Button";
 import { useNavigate } from "react-router-dom";
 import StudentCard from "./StudentCard";
 import "../sections/styles/CardSection.css";
+import { useRef } from "react";
+import useGsapFadeInOnScroll from "../utils/useGsapFadeInOnScroll";
 
 const CardSection = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  useGsapFadeInOnScroll(sectionRef);
 
   const navigate = useNavigate();
 
@@ -12,7 +16,7 @@ const CardSection = () => {
   };
 
   return (
-    <section className="card-section" id="card-section">
+    <section ref={sectionRef} className="card-section" id="card-section">
       <div className="section-container">
         <div className="section-grid">
           <div className="section-content">

@@ -6,6 +6,7 @@ interface StudentCardProps {
   course?: string;
   sport?: string;
   validUntil?: string;
+  className?: string;
 }
 
 const StudentCard = ({ 
@@ -13,10 +14,11 @@ const StudentCard = ({
   registration = "2024001", 
   course = "Engenharia de Software",
   sport = "Todas as modalidades",
-  validUntil = "12/2025"
+  validUntil = "12/2025",
+  className = "student-id-card"
 }: StudentCardProps) => {
   return (
-    <div className="student-id-card">
+    <div className={className}>
       <div className="card-header-section">
         <div className="card-university">UNIFOR</div>
         <div className="card-student-id">STUDENT ID</div>

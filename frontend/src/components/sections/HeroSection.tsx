@@ -1,7 +1,12 @@
 import Button from "../ui/Button";
 import "../sections/styles/HeroSection.css";
+import { useRef } from "react";
+import useGsapFadeInOnScroll from "../utils/useGsapFadeInOnScroll";
 
 const HeroSection = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  useGsapFadeInOnScroll(sectionRef);
+
   const handleStartClick = () => {
     const el = document.querySelector('#card-section');
     if (el) {
@@ -12,7 +17,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="hero-section">
+    <section ref={sectionRef} className="hero-section">
       <div className="hero-overlay"></div>
       
       {/* Elementos decorativos */}

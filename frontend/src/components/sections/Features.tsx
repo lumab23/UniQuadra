@@ -1,8 +1,13 @@
+import { useRef } from "react";
 import { Clock, CreditCard, Activity } from "lucide-react";
 import Card from "../ui/Card";
 import "../sections/styles/Features.css";
+import useGsapFadeInOnScroll from "../utils/useGsapFadeInOnScroll";
 
 const Features = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  useGsapFadeInOnScroll(sectionRef);
+
   const features = [
     {
       icon: <Clock size={32} />,
@@ -25,7 +30,7 @@ const Features = () => {
   ];
 
   return (
-    <section className="features-section">
+    <section ref={sectionRef} className="features-section">
       <div className="features-container">
         {/* Header */}
         <div className="features-header">

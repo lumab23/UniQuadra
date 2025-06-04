@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Button from "../ui/Button";
+import useGsapFadeInOnScroll from "../utils/useGsapFadeInOnScroll";
+import gsap from "gsap";
 import "../sections/styles/Modalidades.css";
 
 const Modalidades = () => {
   const [showAll, setShowAll] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  useGsapFadeInOnScroll(sectionRef);
+  const cardsContainerRef = useRef<HTMLDivElement>(null);
 
   const modalidadesPrincipais = [
     {
@@ -63,8 +68,30 @@ const Modalidades = () => {
     ? [...modalidadesPrincipais, ...modalidadesExtras] 
     : modalidadesPrincipais;
 
+  // Animação GSAP stagger nos cards ao expandir/recolher
+  useEffect(() => {
+    if (cardsContainerRef.current) {
+      const cards = cardsContainerRef.current.querySelectorAll('.modalidades-card');
+      if (showAll) {
+        gsap.fromTo(cards, 
+          { opacity: 0, y: 40 },
+          { opacity: 1, y: 0, duration: 0.7, stagger: 0.08, ease: "power3.out" }
+        );
+      } else {
+        // Quando recolher, anima os extras para cima e fade out
+        gsap.to(cards, {
+          opacity: 1,
+          y: 0,
+          duration: 0.3,
+          stagger: 0.05,
+          ease: "power1.inOut"
+        });
+      }
+    }
+  }, [showAll]);
+
   return (
-    <section id="modalidades" className="modalidades-section">
+    <section ref={sectionRef} className="modalidades-section" id="modalidades">
       <div className="modalidades-container">
         {/* Header */}
         <div className="modalidades-header">
@@ -77,7 +104,7 @@ const Modalidades = () => {
         </div>
 
         {/* Cards das Modalidades */}
-        <div className="modalidades-grid">
+        <div className="modalidades-grid" ref={cardsContainerRef}>
           {modalidadesParaExibir.map((modalidade, index) => (
             <div key={index} className="modalidades-card">
               <div className={`modalidades-card-circle modalidades-${modalidade.color}`}>
