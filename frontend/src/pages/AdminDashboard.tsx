@@ -11,6 +11,7 @@ interface Student {
   email: string;
   curso: string;
   status: string;
+  esporte: string;
 }
 
 interface Reservation {
@@ -44,77 +45,106 @@ const AdminDashboard: React.FC = () => {
     }
 
     loadData();
-  }, [navigate]);
+  }, [navigate, activeTab]);
 
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Carregar reservas
-      const reservasResponse = await api.get('/reservas');
-      const reservasFromApi = reservasResponse.data;
-      
-      const transformedReservas: Reservation[] = reservasFromApi.map((reserva: any) => {
-        try {
-          const dataReserva = new Date(reserva.data);
-          
-          // Verifica se a data é válida
-          if (isNaN(dataReserva.getTime())) {
-            throw new Error('Data inválida');
-          }
-
-          return {
-            id: reserva._id,
-            studentName: reserva.matriculas[0]?.nome || 'Aluno não encontrado',
-            studentMatricula: reserva.matriculas[0]?.matricula || 'N/A',
-            studentEmail: reserva.matriculas[0]?.email || 'N/A',
-            sport: reserva.quadra?.modalidade || 'Não especificado',
-            court: `Quadra ${reserva.quadra?.modalidade || 'não especificada'}`,
-            date: dataReserva.toISOString().split('T')[0],
-            dayOfWeek: dataReserva.toLocaleDateString('pt-BR', { weekday: 'long' }),
-            timeSlot: dataReserva.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-            status: 'ativa',
-            createdAt: dataReserva.toISOString()
-          };
-        } catch (error) {
-          // Se houver erro no processamento da data, retorna um objeto com dados padrão
-          console.warn('Erro ao processar data da reserva:', reserva._id, error);
-          return {
-            id: reserva._id,
-            studentName: reserva.matriculas[0]?.nome || 'Aluno não encontrado',
-            studentMatricula: reserva.matriculas[0]?.matricula || 'N/A',
-            studentEmail: reserva.matriculas[0]?.email || 'N/A',
-            sport: reserva.quadra?.modalidade || 'Não especificado',
-            court: `Quadra ${reserva.quadra?.modalidade || 'não especificada'}`,
-            date: 'Data inválida',
-            dayOfWeek: 'Data inválida',
-            timeSlot: 'Horário não especificado',
-            status: 'ativa',
-            createdAt: new Date().toISOString()
-          };
+      if (activeTab === 'reservas') {
+        // Carregar reservas
+        const reservasResponse = await api.get('/reservas');
+        const reservasFromApi = reservasResponse.data;
+        
+        if (!Array.isArray(reservasFromApi)) {
+          throw new Error('Formato de dados inválido para reservas');
         }
-      });
 
-      setReservations(transformedReservas);
+        const transformedReservas: Reservation[] = reservasFromApi.map((reserva: any) => {
+          try {
+            const dataReserva = new Date(reserva.data);
+            
+            // Verifica se a data é válida
+            if (isNaN(dataReserva.getTime())) {
+              throw new Error('Data inválida');
+            }
 
-      // Carregar alunos
-      const alunosResponse = await api.get('/alunos');
-      setStudents(alunosResponse.data);
+            return {
+              id: reserva._id || 'ID não encontrado',
+              studentName: reserva.matriculas?.[0]?.nome || 'Aluno não encontrado',
+              studentMatricula: reserva.matriculas?.[0]?.matricula || 'N/A',
+              studentEmail: reserva.matriculas?.[0]?.email || 'N/A',
+              sport: reserva.quadra?.modalidade || 'Não especificado',
+              court: `Quadra ${reserva.quadra?.modalidade || 'não especificada'}`,
+              date: dataReserva.toISOString().split('T')[0],
+              dayOfWeek: dataReserva.toLocaleDateString('pt-BR', { weekday: 'long' }),
+              timeSlot: dataReserva.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+              status: 'ativa',
+              createdAt: dataReserva.toISOString()
+            };
+          } catch (error) {
+            console.warn('Erro ao processar data da reserva:', reserva._id, error);
+            return {
+              id: reserva._id || 'ID não encontrado',
+              studentName: 'Erro ao carregar dados',
+              studentMatricula: 'N/A',
+              studentEmail: 'N/A',
+              sport: 'Não especificado',
+              court: 'Quadra não especificada',
+              date: 'Data inválida',
+              dayOfWeek: 'Data inválida',
+              timeSlot: 'Horário não especificado',
+              status: 'ativa',
+              createdAt: new Date().toISOString()
+            };
+          }
+        });
 
+        setReservations(transformedReservas);
+      } else {
+        // Carregar alunos
+        const alunosResponse = await api.get('/alunos');
+        const alunosData = alunosResponse.data;
+
+        if (!Array.isArray(alunosData)) {
+          throw new Error('Formato de dados inválido para alunos');
+        }
+
+        // Garantir que todos os campos necessários estejam presentes
+        const processedStudents = alunosData.map((aluno: any) => ({
+          _id: aluno._id || 'ID não encontrado',
+          nome: aluno.nome || 'Nome não especificado',
+          matricula: aluno.matricula || 'N/A',
+          email: aluno.email || 'N/A',
+          curso: aluno.curso || 'Não especificado',
+          status: (aluno.status || 'inativo').toLowerCase(),
+          esporte: aluno.esporte || 'Não especificado'
+        }));
+
+        setStudents(processedStudents);
+      }
     } catch (error: any) {
       console.error('Erro ao carregar dados:', error);
-      setError('Não foi possível carregar os dados. Por favor, tente novamente mais tarde.');
+      setError(error.response?.data?.message || error.message || 'Não foi possível carregar os dados. Por favor, tente novamente mais tarde.');
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+    try {
+      return new Date(dateString).toLocaleDateString('pt-BR');
+    } catch (error) {
+      return 'Data inválida';
+    }
   };
 
   const formatDateTime = (dateString: string): string => {
-    return new Date(dateString).toLocaleString('pt-BR');
+    try {
+      return new Date(dateString).toLocaleString('pt-BR');
+    } catch (error) {
+      return 'Data/hora inválida';
+    }
   };
 
   const getSportIcon = (sport: string): string => {
@@ -232,13 +262,14 @@ const AdminDashboard: React.FC = () => {
                       <th>Matrícula</th>
                       <th>Email</th>
                       <th>Curso</th>
+                      <th>Modalidade</th>
                       <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {students.length === 0 ? (
                       <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>
+                        <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
                           Nenhum aluno encontrado
                         </td>
                       </tr>
@@ -250,8 +281,14 @@ const AdminDashboard: React.FC = () => {
                           <td>{student.email}</td>
                           <td>{student.curso}</td>
                           <td>
-                            <span className={`status-badge ${student.status.toLowerCase()}`}>
-                              {student.status}
+                            <div className="sport-info">
+                              <span className="sport-icon">{getSportIcon(student.esporte)}</span>
+                              {student.esporte}
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`status-badge ${student.status}`}>
+                              {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
                             </span>
                           </td>
                         </tr>
