@@ -47,6 +47,11 @@ const AdminDashboard: React.FC = () => {
     loadData();
   }, [navigate, activeTab]);
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminAuth');
+    navigate('/');
+  };
+
   const loadData = async () => {
     setLoading(true);
     setError(null);
@@ -181,6 +186,15 @@ const AdminDashboard: React.FC = () => {
                   👥 Alunos
                 </button>
               </div>
+            </div>
+            <div className="header-right">
+              <button 
+                onClick={handleLogout}
+                className="logout-button"
+                title="Sair do painel administrativo"
+              >
+                🚪 Sair
+              </button>
             </div>
           </div>
         </header>
