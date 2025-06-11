@@ -2,22 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../pages/styles/AdminDashboard.css';
 import Navbar from '../components/layout/Navbar';
+import api from '../services/api';
 
 interface Student {
-  id: number;
+  _id: string;
   nome: string;
   matricula: string;
   email: string;
-  telefone: string;
   curso: string;
-  modalidades: string[];
-  foto: string;
-  ativo: boolean;
+  status: string;
 }
 
 interface Reservation {
   id: string;
-  studentId: number;
   studentName: string;
   studentMatricula: string;
   studentEmail: string;
@@ -26,7 +23,6 @@ interface Reservation {
   date: string;
   dayOfWeek: string;
   timeSlot: string;
-  timeCode: string;
   status: 'ativa' | 'cancelada' | 'concluida';
   createdAt: string;
 }
@@ -44,91 +40,7 @@ const AdminDashboard: React.FC = () => {
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-
-  // Dados mockados para demonstração
-  const mockStudents: Student[] = [
-    {
-      id: 1,
-      nome: 'João Silva Santos',
-      matricula: '123456789',
-      email: 'joao.silva@edu.unifor.br',
-      telefone: '(85) 99999-9999',
-      curso: 'Engenharia de Software',
-      modalidades: ['Futsal', 'Natação', 'Basquete'],
-      foto: '/api/placeholder/150/150',
-      ativo: true
-    },
-    {
-      id: 2,
-      nome: 'Maria Oliveira Costa',
-      matricula: '987654321',
-      email: 'maria.oliveira@edu.unifor.br',
-      telefone: '(85) 88888-8888',
-      curso: 'Medicina',
-      modalidades: ['Vôlei', 'Tênis', 'Atletismo'],
-      foto: '/api/placeholder/150/150',
-      ativo: true
-    },
-    {
-      id: 3,
-      nome: 'Pedro Almeida Lima',
-      matricula: '456789123',
-      email: 'pedro.almeida@edu.unifor.br',
-      telefone: '(85) 77777-7777',
-      curso: 'Administração',
-      modalidades: ['Futebol', 'Beach Tennis'],
-      foto: '/api/placeholder/150/150',
-      ativo: false
-    }
-  ];
-
-  const mockReservations: Reservation[] = [
-    {
-      id: 'res-001',
-      studentId: 1,
-      studentName: 'João Silva Santos',
-      studentMatricula: '123456789',
-      studentEmail: 'joao.silva@edu.unifor.br',
-      sport: 'Futsal',
-      court: 'Futsal 1',
-      date: '2024-12-16',
-      dayOfWeek: 'Segunda-feira',
-      timeSlot: '07:30-09:10',
-      timeCode: 'M246AB',
-      status: 'ativa',
-      createdAt: '2024-12-14T10:30:00Z'
-    },
-    {
-      id: 'res-002',
-      studentId: 2,
-      studentName: 'Maria Oliveira Costa',
-      studentMatricula: '987654321',
-      studentEmail: 'maria.oliveira@edu.unifor.br',
-      sport: 'Natação',
-      court: 'Piscina Olímpica',
-      date: '2024-12-17',
-      dayOfWeek: 'Terça-feira',
-      timeSlot: '15:20-17:00',
-      timeCode: 'T35CD',
-      status: 'ativa',
-      createdAt: '2024-12-14T14:15:00Z'
-    },
-    {
-      id: 'res-003',
-      studentId: 3,
-      studentName: 'Pedro Almeida Lima',
-      studentMatricula: '456789123',
-      studentEmail: 'pedro.almeida@edu.unifor.br',
-      sport: 'Basquete',
-      court: 'Quadra 1',
-      date: '2024-12-18',
-      dayOfWeek: 'Quarta-feira',
-      timeSlot: '19:00-20:40',
-      timeCode: 'N246AB',
-      status: 'cancelada',
-      createdAt: '2024-12-13T16:45:00Z'
-    }
-  ];
+  const [error, setError] = useState<string | null>(null);
 
   const sports = ['Todos', 'Futsal', 'Natação', 'Basquete', 'Vôlei', 'Futebol', 'Tênis', 'Atletismo', 'Beach Tennis', 'Vôlei de Praia'];
   const statusOptions = ['Todos', 'ativa', 'cancelada', 'concluida'];
@@ -146,13 +58,65 @@ const AdminDashboard: React.FC = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // Simular carregamento de dados
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setReservations(mockReservations);
-      setStudents(mockStudents);
-    } catch (error) {
+      // Carregar reservas
+      const reservasResponse = await api.get('/reservas');
+      const reservasFromApi = reservasResponse.data;
+      
+      const transformedReservas: Reservation[] = reservasFromApi.map((reserva: any) => {
+        try {
+          const dataReserva = new Date(reserva.data);
+          
+          // Verifica se a data é válida
+          if (isNaN(dataReserva.getTime())) {
+            throw new Error('Data inválida');
+          }
+
+          return {
+            id: reserva._id,
+            studentName: reserva.matriculas[0]?.nome || 'Aluno não encontrado',
+            studentMatricula: reserva.matriculas[0]?.matricula || 'N/A',
+            studentEmail: reserva.matriculas[0]?.email || 'N/A',
+            sport: reserva.quadra?.modalidade || 'Não especificado',
+            court: `Quadra ${reserva.quadra?.modalidade || 'não especificada'}`,
+            date: dataReserva.toISOString().split('T')[0],
+            dayOfWeek: dataReserva.toLocaleDateString('pt-BR', { weekday: 'long' }),
+            timeSlot: dataReserva.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            status: 'ativa',
+            createdAt: dataReserva.toISOString()
+          };
+        } catch (error) {
+          // Se houver erro no processamento da data, retorna um objeto com dados padrão
+          console.warn('Erro ao processar data da reserva:', reserva._id, error);
+          return {
+            id: reserva._id,
+            studentName: reserva.matriculas[0]?.nome || 'Aluno não encontrado',
+            studentMatricula: reserva.matriculas[0]?.matricula || 'N/A',
+            studentEmail: reserva.matriculas[0]?.email || 'N/A',
+            sport: reserva.quadra?.modalidade || 'Não especificado',
+            court: `Quadra ${reserva.quadra?.modalidade || 'não especificada'}`,
+            date: 'Data inválida',
+            dayOfWeek: 'Data inválida',
+            timeSlot: 'Horário não especificado',
+            status: 'ativa',
+            createdAt: new Date().toISOString() // Usa a data atual como fallback
+          };
+        }
+      });
+
+      console.log('Reservas carregadas:', reservasFromApi);
+      console.log('Reservas transformadas:', transformedReservas);
+      
+      setReservations(transformedReservas);
+
+      // Carregar alunos
+      const alunosResponse = await api.get('/alunos');
+      setStudents(alunosResponse.data);
+
+    } catch (error: any) {
       console.error('Erro ao carregar dados:', error);
+      setError('Não foi possível carregar os dados. Por favor, tente novamente mais tarde.');
     } finally {
       setLoading(false);
     }
@@ -327,6 +291,13 @@ const AdminDashboard: React.FC = () => {
               <div className="loading-spinner"></div>
               <p>Carregando dados...</p>
             </div>
+          ) : error ? (
+            <div className="error-container">
+              <p>❌ {error}</p>
+              <button onClick={loadData} className="btn-primary">
+                🔄 Tentar novamente
+              </button>
+            </div>
           ) : (
             <>
               {activeTab === 'reservas' && (
@@ -398,7 +369,6 @@ const AdminDashboard: React.FC = () => {
                                   <div className="datetime-info">
                                     <div className="date-info">{reservation.dayOfWeek}</div>
                                     <div className="time-info">{formatDate(reservation.date)} • {reservation.timeSlot}</div>
-                                    <div className="code-info">{reservation.timeCode}</div>
                                   </div>
                                 </td>
                                 <td>
@@ -443,14 +413,14 @@ const AdminDashboard: React.FC = () => {
                     <div className="stat-card">
                       <span className="stat-icon">✅</span>
                       <div className="stat-info">
-                        <span className="stat-number">{students.filter(s => s.ativo).length}</span>
+                        <span className="stat-number">{students.filter(s => s.status.toLowerCase() === 'ativo').length}</span>
                         <span className="stat-label">Ativos</span>
                       </div>
                     </div>
                     <div className="stat-card">
                       <span className="stat-icon">⏸️</span>
                       <div className="stat-info">
-                        <span className="stat-number">{students.filter(s => !s.ativo).length}</span>
+                        <span className="stat-number">{students.filter(s => s.status.toLowerCase() === 'inativo').length}</span>
                         <span className="stat-label">Inativos</span>
                       </div>
                     </div>
@@ -465,11 +435,11 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     ) : (
                       filteredStudents.map((student) => (
-                        <div key={student.id} className={`student-card ${!student.ativo ? 'inactive' : ''}`}>
+                        <div key={student._id} className={`student-card ${student.status.toLowerCase() === 'inativo' ? 'inactive' : ''}`}>
                           <div className="student-photo">
                             <img src={student.foto} alt={student.nome} />
-                            <div className={`status-indicator ${student.ativo ? 'active' : 'inactive'}`}>
-                              {student.ativo ? '✅' : '⏸️'}
+                            <div className={`status-indicator ${student.status.toLowerCase() === 'ativo' ? 'active' : 'inactive'}`}>
+                              {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
                             </div>
                           </div>
                           
@@ -485,23 +455,8 @@ const AdminDashboard: React.FC = () => {
                                 <span className="detail-value">{student.email}</span>
                               </div>
                               <div className="detail-item">
-                                <span className="detail-label">Telefone:</span>
-                                <span className="detail-value">{student.telefone}</span>
-                              </div>
-                              <div className="detail-item">
                                 <span className="detail-label">Curso:</span>
                                 <span className="detail-value">{student.curso}</span>
-                              </div>
-                            </div>
-
-                            <div className="student-sports">
-                              <span className="sports-label">Modalidades:</span>
-                              <div className="sports-list">
-                                {student.modalidades.map((modalidade, index) => (
-                                  <span key={index} className="sport-tag">
-                                    {getSportIcon(modalidade)} {modalidade}
-                                  </span>
-                                ))}
                               </div>
                             </div>
 
@@ -565,11 +520,6 @@ const AdminDashboard: React.FC = () => {
                       </div>
                       
                       <div className="info-item">
-                        <span className="info-label">Telefone:</span>
-                        <span className="info-value">{selectedStudent.telefone}</span>
-                      </div>
-                      
-                      <div className="info-item">
                         <span className="info-label">Curso:</span>
                         <span className="info-value">{selectedStudent.curso}</span>
                       </div>
@@ -591,8 +541,8 @@ const AdminDashboard: React.FC = () => {
                 
                 <div className="card-footer">
                   <div className="validity-info">
-                    <span className={`status-badge ${selectedStudent.ativo ? 'ativa' : 'inactive'}`}>
-                      {selectedStudent.ativo ? '✅ ATIVO' : '⏸️ INATIVO'}
+                    <span className={`status-badge ${selectedStudent.status.toLowerCase() === 'ativo' ? 'ativa' : 'inactive'}`}>
+                      {selectedStudent.status.charAt(0).toUpperCase() + selectedStudent.status.slice(1)}
                     </span>
                     <span className="validity-text">
                       Válido até: 31/12/2024
