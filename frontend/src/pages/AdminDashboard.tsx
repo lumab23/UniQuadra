@@ -253,12 +253,6 @@ const AdminDashboard: React.FC = () => {
             
             <div className="header-actions">
               <button 
-                className="btn-secondary"
-                onClick={() => navigate('/admin/horarios')}
-              >
-                📅 Ver Horários
-              </button>
-              <button 
                 className="btn-danger"
                 onClick={() => setShowLogoutModal(true)}
               >

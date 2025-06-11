@@ -5,7 +5,6 @@ import Carteirinha from './pages/Carteirinha'
 import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
 import ProtectedAdminRoute from './components/admin/ProtectedAdminRoute'
-import AdminHorarios from './pages/AdminHorarios'
 
 function App() {
   return (
@@ -18,11 +17,6 @@ function App() {
           <Route path="/admin/dashboard" element={
             <ProtectedAdminRoute>
               <AdminDashboard />
-            </ProtectedAdminRoute>
-          } />
-          <Route path="/admin/horarios" element={
-            <ProtectedAdminRoute>
-              <AdminHorarios />
             </ProtectedAdminRoute>
           } />
         </Routes>
