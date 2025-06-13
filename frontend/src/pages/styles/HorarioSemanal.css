@@ -258,10 +258,15 @@
 /* Horários das Quadras */
 .court-schedule {
   border-bottom: 1px solid #f3f4f6;
+  margin-bottom: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .court-schedule:last-child {
   border-bottom: none;
+  margin-bottom: 0;
 }
 
 .court-name-header {

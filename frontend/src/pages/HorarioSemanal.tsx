@@ -72,12 +72,9 @@ const HorarioSemanal: React.FC = () => {
 
   const courtsByType = {
     'Quadra': [
-      { id: 1, name: 'Quadra 1', sport: 'Futsal', type: 'Quadra' },
-      { id: 2, name: 'Quadra 2', sport: 'Futsal', type: 'Quadra' },
-      { id: 5, name: 'Quadra 3', sport: 'Basquete', type: 'Quadra' },
-      { id: 6, name: 'Quadra 4', sport: 'Basquete', type: 'Quadra' },
-      { id: 17, name: 'Quadra 5', sport: 'Vôlei', type: 'Quadra' },
-      { id: 18, name: 'Quadra 6', sport: 'Vôlei', type: 'Quadra' }
+      { id: 1, name: 'Quadra de Futsal', sport: 'Futsal', type: 'Quadra' },
+      { id: 5, name: 'Quadra de Basquete', sport: 'Basquete', type: 'Quadra' },
+      { id: 17, name: 'Quadra de Vôlei', sport: 'Vôlei', type: 'Quadra' }
     ],
     'Campo': [
       { id: 10, name: 'Campo Society', sport: 'Futebol', type: 'Campo' }
@@ -87,11 +84,14 @@ const HorarioSemanal: React.FC = () => {
     ],
     'Quadra de Tênis': [
       { id: 15, name: 'Quadra Saibro 1', sport: 'Tênis', type: 'Quadra de Tênis' },
-      { id: 16, name: 'Quadra Saibro 2', sport: 'Tênis', type: 'Quadra de Tênis' }
+      { id: 16, name: 'Quadra Saibro 2', sport: 'Tênis', type: 'Quadra de Tênis' },
+      { id: 19, name: 'Quadra Saibro 3', sport: 'Tênis', type: 'Quadra de Tênis' },
+      { id: 20, name: 'Quadra Saibro 4', sport: 'Tênis', type: 'Quadra de Tênis' }
     ],
     'Pista de Atletismo': [
       { id: 11, name: 'Pista Oficial', sport: 'Atletismo', type: 'Pista de Atletismo' },
-      { id: 12, name: 'Campo de Saltos', sport: 'Atletismo', type: 'Pista de Atletismo' }
+      { id: 12, name: 'Campo de Saltos', sport: 'Atletismo', type: 'Pista de Atletismo' },
+      { id: 21, name: 'Campo de Futebol Oficial', sport: 'Futebol', type: 'Pista de Atletismo' }
     ],
     'Quadra de Areia': [
       { id: 7, name: 'Quadra Areia 1', sport: 'Vôlei de Praia', type: 'Quadra de Areia' },
