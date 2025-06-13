@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import * as CarteirinhaService from '../services/CarteirinhaService';
 import { StatusCode } from '../utils/statusCode';
 import Carteirinha from '../models/Carteirinha'; // Importando o modelo Carteirinha
+import Aluno from '../models/Aluno'; // Importando o modelo Aluno
 // import { Carteirinha } from '../models/Carteirinha'; // Importando o modelo Carteirinha
 
 // buscar todas as carteirinhas
@@ -72,26 +73,45 @@ export const verificarCarteirinhasVencidas = async (req: Request, res: Response)
 }
 
 export const validarCarteirinha = async (req: Request, res: Response) => {
+  console.log('Controller: Iniciando validação de carteirinha');
   const { matricula, email } = req.body;
+  console.log('Controller: Dados recebidos:', { matricula, email });
 
   if (!matricula || !email) {
+    console.log('Controller: Dados inválidos - matrícula ou email faltando');
     return res.status(400).json({ message: 'Matrícula e email são obrigatórios.' });
   }
 
   if (!email.endsWith('@edu.unifor.br')) {
+    console.log('Controller: Email inválido - não é @edu.unifor.br');
     return res.status(400).json({ message: 'Email deve ser @edu.unifor.br.' });
   }
 
   try {
-    const carteirinha = await Carteirinha.findOne({ matricula, email });
+    console.log('Controller: Buscando aluno...');
+    // Primeiro, busca o aluno pelo email e matrícula
+    const aluno = await Aluno.findOne({ email, matricula });
+    console.log('Controller: Resultado da busca do aluno:', aluno);
     
-    if (!carteirinha) {
-      return res.status(404).json({ message: 'Carteirinha não encontrada.', valid: false });
+    if (!aluno) {
+      console.log('Controller: Aluno não encontrado');
+      return res.status(404).json({ message: 'Aluno não encontrado.', valid: false });
     }
 
+    console.log('Controller: Buscando carteirinha...');
+    // Depois, busca a carteirinha do aluno
+    const carteirinha = await Carteirinha.findOne({ aluno: aluno._id, status: 'ativa' });
+    console.log('Controller: Resultado da busca da carteirinha:', carteirinha);
+    
+    if (!carteirinha) {
+      console.log('Controller: Carteirinha não encontrada ou inativa');
+      return res.status(404).json({ message: 'Carteirinha não encontrada ou inativa.', valid: false });
+    }
+
+    console.log('Controller: Validação bem-sucedida');
     res.status(200).json({ valid: true, carteirinha });
   } catch (error) {
-    console.error(error);
+    console.error('Controller: Erro ao validar carteirinha:', error);
     res.status(500).json({ message: 'Erro ao validar a carteirinha.', error });
   }
 };
