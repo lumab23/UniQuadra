@@ -371,31 +371,40 @@
 /* Status Badge */
 .status-badge {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
   font-weight: 500;
+  min-width: 120px;
+}
+
+.status-badge small {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: normal;
 }
 
 .status-badge.ativa {
-  background: #d4edda;
-  color: #155724;
+  background-color: #dcfce7;
+  color: #166534;
 }
 
-.status-badge.cancelada {
-  background: #f8d7da;
-  color: #721c24;
+.status-badge.inativa {
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
-.status-badge.concluida {
-  background: #cce5ff;
-  color: #004085;
+.status-badge.vencida {
+  background-color: #fef3c7;
+  color: #92400e;
 }
 
-.status-badge.inactive {
-  background: #f3f4f6;
-  color: #6b7280;
+.status-badge.suspensa {
+  background-color: #f3f4f6;
+  color: #1f2937;
 }
 
 .action-buttons {

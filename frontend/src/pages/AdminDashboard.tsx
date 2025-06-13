@@ -9,9 +9,11 @@ interface Student {
   nome: string;
   matricula: string;
   email: string;
-  curso: string;
-  status: string;
   esporte: string;
+  carteirinha?: {
+    status: string;
+    validade: string;
+  };
 }
 
 interface Reservation {
@@ -24,7 +26,7 @@ interface Reservation {
   date: string;
   dayOfWeek: string;
   timeSlot: string;
-  status: 'ativa' | 'cancelada' | 'concluida';
+  status: string;
   createdAt: string;
 }
 
@@ -115,18 +117,38 @@ const AdminDashboard: React.FC = () => {
           throw new Error('Formato de dados inválido para alunos');
         }
 
-        // Garantir que todos os campos necessários estejam presentes
-        const processedStudents = alunosData.map((aluno: any) => ({
-          _id: aluno._id || 'ID não encontrado',
-          nome: aluno.nome || 'Nome não especificado',
-          matricula: aluno.matricula || 'N/A',
-          email: aluno.email || 'N/A',
-          curso: aluno.curso || 'Não especificado',
-          status: (aluno.status || 'inativo').toLowerCase(),
-          esporte: aluno.esporte || 'Não especificado'
-        }));
+        // Para cada aluno, buscar sua carteirinha
+        const alunosComCarteirinha = await Promise.all(
+          alunosData.map(async (aluno: any) => {
+            try {
+              const carteirinhaResponse = await api.get(`/carteirinhas/aluno/${aluno._id}`);
+              const carteirinha = carteirinhaResponse.data[0]; // Pega a carteirinha mais recente
+              
+              return {
+                _id: aluno._id || 'ID não encontrado',
+                nome: aluno.nome || 'Nome não especificado',
+                matricula: aluno.matricula || 'N/A',
+                email: aluno.email || 'N/A',
+                esporte: aluno.esporte || 'Não especificado',
+                carteirinha: carteirinha ? {
+                  status: carteirinha.status,
+                  validade: carteirinha.validade
+                } : undefined
+              };
+            } catch (error) {
+              console.warn('Erro ao buscar carteirinha do aluno:', aluno._id, error);
+              return {
+                _id: aluno._id || 'ID não encontrado',
+                nome: aluno.nome || 'Nome não especificado',
+                matricula: aluno.matricula || 'N/A',
+                email: aluno.email || 'N/A',
+                esporte: aluno.esporte || 'Não especificado'
+              };
+            }
+          })
+        );
 
-        setStudents(processedStudents);
+        setStudents(alunosComCarteirinha);
       }
     } catch (error: any) {
       console.error('Erro ao carregar dados:', error);
@@ -275,15 +297,14 @@ const AdminDashboard: React.FC = () => {
                       <th>Nome</th>
                       <th>Matrícula</th>
                       <th>Email</th>
-                      <th>Curso</th>
                       <th>Modalidade</th>
-                      <th>Status</th>
+                      <th>Status da Carteirinha</th>
                     </tr>
                   </thead>
                   <tbody>
                     {students.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>
                           Nenhum aluno encontrado
                         </td>
                       </tr>
@@ -293,7 +314,6 @@ const AdminDashboard: React.FC = () => {
                           <td>{student.nome}</td>
                           <td>{student.matricula}</td>
                           <td>{student.email}</td>
-                          <td>{student.curso}</td>
                           <td>
                             <div className="sport-info">
                               <span className="sport-icon">{getSportIcon(student.esporte)}</span>
@@ -301,8 +321,16 @@ const AdminDashboard: React.FC = () => {
                             </div>
                           </td>
                           <td>
-                            <span className={`status-badge ${student.status}`}>
-                              {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                            <span className={`status-badge ${student.carteirinha?.status || 'inativa'}`}>
+                              {student.carteirinha ? (
+                                <>
+                                  {student.carteirinha.status.charAt(0).toUpperCase() + student.carteirinha.status.slice(1)}
+                                  <br />
+                                  <small>Válida até: {formatDate(student.carteirinha.validade)}</small>
+                                </>
+                              ) : (
+                                'Sem carteirinha'
+                              )}
                             </span>
                           </td>
                         </tr>

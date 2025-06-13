@@ -7,9 +7,13 @@ async function seedAdmin() {
         // Connect to the database
         await connection();
 
-        // Remove existing admin
-        await AdministradorModel.deleteMany({});
-        console.log('Removed existing admin users');
+        // Verificar se já existe algum administrador
+        const existingAdmin = await AdministradorModel.findOne({ email: 'admin@unifor.br' });
+        
+        if (existingAdmin) {
+            console.log('Admin padrão já existe no banco de dados');
+            return;
+        }
 
         // Create default admin
         const admin = new AdministradorModel({
@@ -19,12 +23,11 @@ async function seedAdmin() {
         });
 
         await admin.save();
-        console.log('Admin user created successfully');
+        console.log('Admin padrão criado com sucesso');
 
     } catch (error) {
-        console.error('Error seeding admin:', error);
+        console.error('Erro ao criar admin padrão:', error);
     } finally {
-        // Close the database connection
         await mongoose.connection.close();
     }
 }
