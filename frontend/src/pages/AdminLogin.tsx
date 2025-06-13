@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../pages/styles/AdminLogin.css';
 import Navbar from '../components/layout/Navbar';
+import api from '../services/api';
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     matricula: '',
-    senha: ''
+    email: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -50,13 +50,13 @@ const AdminLogin: React.FC = () => {
       return false;
     }
 
-    if (!formData.senha) {
-      setError('Senha é obrigatória');
+    if (!formData.email) {
+      setError('Email é obrigatório');
       return false;
     }
 
-    if (formData.senha.length < 6) {
-      setError('Senha deve ter pelo menos 6 caracteres');
+    if (!formData.email.endsWith('@unifor.br')) {
+      setError('Email deve ser do domínio @unifor.br');
       return false;
     }
 
@@ -72,29 +72,24 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      // Aqui será a chamada para a API de autenticação
-      // Por enquanto, vamos simular uma autenticação
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Buscar administrador pela matrícula
+      const response = await api.get(`/administrador/matricula/${formData.matricula}`);
       
-      // Simular algumas matrículas válidas para teste
-      const validMatriculas = ['730123456', '730987654', '730555666'];
-      
-      if (validMatriculas.includes(formData.matricula) && formData.senha === 'admin123') {
-        // Salvar dados do admin no localStorage (ou usar contexto)
+      if (response.data && response.data.email === formData.email) {
         localStorage.setItem('adminAuth', JSON.stringify({
-          matricula: formData.matricula,
-          nome: 'Administrador',
+          matricula: response.data.matricula,
+          nome: response.data.nome,
+          email: response.data.email,
           isAuthenticated: true,
           loginTime: new Date().toISOString()
         }));
         
-        // Redirecionar para dashboard admin
         navigate('/admin/dashboard');
       } else {
-        setError('Matrícula ou senha incorretos');
+        setError('Matrícula ou email incorretos');
       }
     } catch (err) {
-      setError('Erro ao conectar com o servidor. Tente novamente.');
+      setError('Matrícula ou email incorretos');
     } finally {
       setLoading(false);
     }
@@ -155,27 +150,23 @@ const AdminLogin: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="senha" className="form-label">
-                Senha
+              <label htmlFor="email" className="form-label">
+                Email Institucional
               </label>
               <div className="input-container">
-                <span className="input-icon">🔒</span>
+                <span className="input-icon">📧</span>
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="senha"
-                  name="senha"
-                  value={formData.senha}
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="Digite sua senha"
+                  placeholder="seu.email@unifor.br"
                   className="form-input"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="password-toggle"
-                >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
-                </button>
+              </div>
+              <div className="form-hint">
+                Use seu email institucional @unifor.br
               </div>
             </div>
 
@@ -197,18 +188,6 @@ const AdminLogin: React.FC = () => {
               )}
             </button>
           </form>
-
-          <div className="login-footer">
-            <div className="test-credentials">
-              <h4>📋 Credenciais para Teste:</h4>
-              <div className="test-item">
-                <strong>Matrícula:</strong> 730123456, 730987654, 730555666
-              </div>
-              <div className="test-item">
-                <strong>Senha:</strong> admin123
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

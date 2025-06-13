@@ -10,7 +10,8 @@
     "lint": "eslint src/**/*.ts",
     "start:dist": "npm run dist && node dist/src/server.ts",
     "build": "tsc",
-    "format": "prettier --write src/**/*.ts"
+    "format": "prettier --write src/**/*.ts",
+    "seed:admin": "tsx src/database/seeds/adminSeed.ts"
   },
   "keywords": [],
   "author": "",
