@@ -4,13 +4,15 @@ import ReservaService from '../services/ReservaService';
 class ReservaController {
     criarReserva: RequestHandler = async (req, res) => {
         try {
+            console.log('Controller: Recebendo dados para criar reserva:', req.body); // Log do corpo da requisição
             const reserva = await ReservaService.criarReserva(req.body);
+            console.log('Controller: Reserva criada com sucesso:', reserva); // Log de sucesso
             res.status(201).json(reserva);
         } catch (e: any) {
+            console.error('Controller: Erro ao criar reserva:', e.message); // Log do erro
             res.status(400).json({ error: e.message });
         }
     };
-
     listarReserva: RequestHandler = async (req, res) => {
         try {
             const reservas = await ReservaService.listarReserva();

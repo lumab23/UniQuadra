@@ -1,11 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import '../pages/styles/HorarioSemanal.css';
 import Navbar from '../components/layout/Navbar';
 
+// ====================================================================
+// FUNÇÕES DE ÍCONES MOVIDAS PARA FORA DO COMPONENTE HorarioSemanal
+// ====================================================================
+const getLocationTypeIcon = (type: string): string => {
+  const icons: { [key: string]: string } = {
+    'Quadra': '🏟️',
+    'Quadra de Tênis': '🎾',
+    'Campo': '⚽',
+    'Quadra de Areia': '🏖️',
+    'Piscina': '🏊‍♀️',
+    'Pista de Atletismo': '🏃‍♂️'
+  };
+  return icons[type] || '📍';
+};
+
+const getPeriodIcon = (period: string): string => {
+  const icons: { [key: string]: string } = {
+    'Manhã': '🌅',
+    'Tarde': '☀️',
+    'Noite': '🌙'
+  };
+  return icons[period] || '🕐';
+};
+// ====================================================================
+
+// ====================================================================
+// Componente SelectorButtons MOVIDO PARA FORA do HorarioSemanal
+// ====================================================================
+interface SelectorButtonsProps {
+  options: string[];
+  selectedOption: string;
+  onSelect: (option: string) => void;
+  getIcon: (option: string) => string;
+  title: string;
+}
+
+const SelectorButtons: React.FC<SelectorButtonsProps> = ({ options, selectedOption, onSelect, getIcon, title }) => (
+  <div className="selector-section">
+    <h2 className="selector-title">{title}:</h2>
+    <div className="selector-buttons">
+      {options.map((option) => (
+        <button
+          key={option}
+          onClick={() => onSelect(option)}
+          className={`selector-button ${selectedOption === option ? 'active' : ''}`}
+        >
+          <span className="selector-button-icon">{getIcon(option)}</span>
+          <span className="selector-button-text">{option}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+);
+// ====================================================================
+
+
 const HorarioSemanal: React.FC = () => {
   const [selectedWeek, setSelectedWeek] = useState(0);
-  const [selectedSport, setSelectedSport] = useState('Quadra');
-  const [selectedPeriod, setSelectedPeriod] = useState('Todos');
+  const [selectedLocationType, setSelectedLocationType] = useState('Quadra');
+  const [selectedPeriod, setSelectedPeriod] = useState('Manhã');
   const [activeTab, setActiveTab] = useState<'horarios' | 'reservas'>('horarios');
   const [reservations, setReservations] = useState<Reserva[]>([]);
   const [showReservationModal, setShowReservationModal] = useState(false);
@@ -14,6 +70,12 @@ const HorarioSemanal: React.FC = () => {
     day: Day;
     court: Court;
   } | null>(null);
+  const [dbReservations, setDbReservations] = useState<BackendReserva[]>([]);
+  const [isLoadingReservations, setIsLoadingReservations] = useState(true);
+  const [dbCourts, setDbCourts] = useState<any[]>([]);
+
+  // Usando a matrícula correta do aluno
+  const CURRENT_USER_MATRICULA = '2320313'; // Matrícula da Amanda Fonsêca
 
   interface TimeSlot {
     code: string;
@@ -25,7 +87,7 @@ const HorarioSemanal: React.FC = () => {
     id: number;
     name: string;
     sport: string;
-    type: string;
+    locationType: string;
   }
 
   interface Day {
@@ -43,7 +105,14 @@ const HorarioSemanal: React.FC = () => {
     createdAt: string;
   }
 
-  const timeSlots: TimeSlot[] = [
+  interface BackendReserva {
+    _id: string;
+    quadra: string;
+    data: string;
+    matriculas: string[];
+  }
+
+  const timeSlots: TimeSlot[] = useMemo(() => [
     { code: 'M246AB', time: '07:30-09:10', label: 'Manhã' },
     { code: 'M35AB', time: '07:30-09:10', label: 'Manhã' },
     { code: 'M246CD', time: '09:20-11:00', label: 'Manhã' },
@@ -60,90 +129,153 @@ const HorarioSemanal: React.FC = () => {
     { code: 'N35AB', time: '19:00-20:40', label: 'Noite' },
     { code: 'N246CD', time: '20:50-22:30', label: 'Noite' },
     { code: 'N35CD', time: '20:50-22:30', label: 'Noite' }
-  ];
+  ], []);
 
-  const daysOfWeek: Day[] = [
+  const daysOfWeek: Day[] = useMemo(() => [
     { key: '2', label: 'Segunda-feira', short: 'SEG' },
     { key: '3', label: 'Terça-feira', short: 'TER' },
     { key: '4', label: 'Quarta-feira', short: 'QUA' },
     { key: '5', label: 'Quinta-feira', short: 'QUI' },
     { key: '6', label: 'Sexta-feira', short: 'SEX' }
-  ];
+  ], []);
 
-  const courtsByType = {
-    'Quadra': [
-      { id: 1, name: 'Quadra de Futsal', sport: 'Futsal', type: 'Quadra' },
-      { id: 5, name: 'Quadra de Basquete', sport: 'Basquete', type: 'Quadra' },
-      { id: 17, name: 'Quadra de Vôlei', sport: 'Vôlei', type: 'Quadra' }
-    ],
-    'Campo': [
-      { id: 10, name: 'Campo Society', sport: 'Futebol', type: 'Campo' }
-    ],
-    'Piscina': [
-      { id: 3, name: 'Piscina Olímpica', sport: 'Natação', type: 'Piscina' }
-    ],
-    'Quadra de Tênis': [
-      { id: 15, name: 'Quadra Saibro 1', sport: 'Tênis', type: 'Quadra de Tênis' },
-      { id: 16, name: 'Quadra Saibro 2', sport: 'Tênis', type: 'Quadra de Tênis' },
-      { id: 19, name: 'Quadra Saibro 3', sport: 'Tênis', type: 'Quadra de Tênis' },
-      { id: 20, name: 'Quadra Saibro 4', sport: 'Tênis', type: 'Quadra de Tênis' }
-    ],
-    'Pista de Atletismo': [
-      { id: 11, name: 'Pista Oficial', sport: 'Atletismo', type: 'Pista de Atletismo' },
-      { id: 12, name: 'Campo de Saltos', sport: 'Atletismo', type: 'Pista de Atletismo' },
-      { id: 21, name: 'Campo de Futebol Oficial', sport: 'Futebol', type: 'Pista de Atletismo' }
-    ],
-    'Quadra de Areia': [
-      { id: 7, name: 'Quadra Areia 1', sport: 'Vôlei de Praia', type: 'Quadra de Areia' },
-      { id: 8, name: 'Quadra Areia 2', sport: 'Vôlei de Praia', type: 'Quadra de Areia' },
-      { id: 13, name: 'Quadra Areia 3', sport: 'Beach Tennis', type: 'Quadra de Areia' },
-      { id: 14, name: 'Quadra Areia 4', sport: 'Beach Tennis', type: 'Quadra de Areia' }
-    ]
+  const allCourts: Court[] = useMemo(() => [
+    { id: 1, name: 'Quadra Poliesportiva 1', sport: 'Campo de Futsal', locationType: 'Quadra' },
+    { id: 2, name: 'Quadra Poliesportiva 2', sport: 'Basquete', locationType: 'Quadra' },
+    { id: 17, name: 'Quadra Vôlei 1', sport: 'Vôlei', locationType: 'Quadra' },
+    { id: 18, name: 'Quadra Vôlei 2', sport: 'Vôlei', locationType: 'Quadra' },
+
+    { id: 15, name: 'Quadra de Tênis Saibro 1', sport: 'Tenis', locationType: 'Quadra de Tênis' },
+    { id: 16, name: 'Quadra de Tênis Saibro 2', sport: 'Tenis', locationType: 'Quadra de Tênis' },
+
+    { id: 9, name: 'Campo de Futebol Oficial', sport: 'Campo de Futsal', locationType: 'Campo' },
+
+    { id: 3, name: 'Piscina Olímpica', sport: 'Natação', locationType: 'Piscina' },
+
+    { id: 7, name: 'Quadra de Areia Vôlei de Praia 1', sport: 'Campo de areia', locationType: 'Quadra de Areia' },
+    { id: 8, name: 'Quadra de Areia Vôlei de Praia 2', sport: 'Campo de areia', locationType: 'Quadra de Areia' },
+    { id: 13, name: 'Quadra de Areia Beach Tennis 1', sport: 'Campo de areia', locationType: 'Quadra de Areia' },
+    { id: 14, name: 'Quadra de Areia Beach Tennis 2', sport: 'Campo de areia', locationType: 'Quadra de Areia' },
+
+    { id: 11, name: 'Pista de Atletismo Oficial', sport: 'Atletismo', locationType: 'Pista de Atletismo' },
+    { id: 12, name: 'Campo de Saltos Atletismo', sport: 'Atletismo', locationType: 'Pista de Atletismo' },
+  ], []);
+
+  const locationTypes: string[] = useMemo(() => ['Quadra', 'Quadra de Tênis', 'Campo', 'Quadra de Areia', 'Piscina', 'Pista de Atletismo'], []);
+  const periods: string[] = useMemo(() => ['Manhã', 'Tarde', 'Noite'], []);
+
+  const hourToTimeSlotCodeMap: { [key: string]: string } = useMemo(() => ({
+    '07:30': 'M', '09:20': 'M', '11:10': 'M',
+    '13:30': 'T', '15:20': 'T', '17:10': 'T',
+    '19:00': 'N', '20:50': 'N'
+  }), []);
+
+  // Verificar se a matrícula existe
+  useEffect(() => {
+    const verificarMatricula = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/alunos/matricula/${CURRENT_USER_MATRICULA}`);
+        if (!response.ok) {
+          console.error('Matrícula não encontrada no sistema');
+          alert('Sua matrícula não está cadastrada no sistema. Por favor, faça seu cadastro primeiro.');
+        }
+      } catch (error) {
+        console.error('Erro ao verificar matrícula:', error);
+      }
+    };
+
+    verificarMatricula();
+  }, []);
+
+  // Carregar quadras do MongoDB
+  useEffect(() => {
+    const fetchCourts = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/quadras');
+        if (!response.ok) {
+          throw new Error('Erro ao buscar quadras');
+        }
+        const quadras = await response.json();
+        setDbCourts(quadras);
+      } catch (error) {
+        console.error('Erro ao carregar quadras:', error);
+      }
+    };
+
+    fetchCourts();
+  }, []);
+
+  const fetchReservationsFromDb = async () => {
+    setIsLoadingReservations(true);
+    try {
+      const response = await fetch('http://localhost:3001/api/reservas'); 
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: BackendReserva[] = await response.json();
+      setDbReservations(data);
+
+      const userReservasFromDb: Reserva[] = [];
+      data.forEach(dbRes => {
+          if (dbRes.matriculas.includes(CURRENT_USER_MATRICULA)) {
+              const resDate = new Date(dbRes.data);
+              let dayKeyForFrontend: string | undefined;
+              if (resDate.getDay() >= 1 && resDate.getDay() <= 5) { 
+                  dayKeyForFrontend = (resDate.getDay() + 1).toString(); 
+              } else {
+                  return; 
+              }
+              
+              // CORREÇÃO: Usando template literal correto aqui
+              const timeHourMinute = `${resDate.getUTCHours().toString().padStart(2, '0')}:${resDate.getUTCMinutes().toString().padStart(2, '0')}`;
+              
+              const correspondingDay = daysOfWeek.find(d => d.key === dayKeyForFrontend);
+              const correspondingTimeSlot = timeSlots.find(ts => 
+                 ts.time.startsWith(timeHourMinute) && ts.code.startsWith(hourToTimeSlotCodeMap[timeHourMinute])
+              );
+              const correspondingCourt = allCourts.find(court => court.id.toString() === dbRes.quadra);
+
+              if (correspondingDay && correspondingTimeSlot && correspondingCourt) {
+                  const appWeekStartDate = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1));
+                  const diffTime = resDate.getTime() - appWeekStartDate.getTime();
+                  const weekOffset = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+
+                  userReservasFromDb.push({
+                      timeSlot: correspondingTimeSlot,
+                      day: correspondingDay,
+                      court: correspondingCourt,
+                      week: weekOffset,
+                      createdAt: dbRes.data
+                  });
+              }
+          }
+      });
+      setReservations(userReservasFromDb);
+
+    } catch (error) {
+      console.error('Erro ao buscar reservas:', error);
+    } finally {
+      setIsLoadingReservations(false);
+    }
   };
 
-  const periods = ['Todos', 'Manhã', 'Tarde', 'Noite'];
+  useEffect(() => {
+    fetchReservationsFromDb();
+  }, [selectedWeek]); 
 
   const generateReservationKey = (timeSlot: TimeSlot, day: Day, court: Court, week: number): string => {
+    // CORREÇÃO: Usando template literal correto aqui
     return `${timeSlot.code}-${day.key}-${court.id}-week${week}`;
-  };
-
-  // Função para obter a data/hora da reserva como objeto Date
-  const getReservationDate = (day: Day, timeSlot: TimeSlot, week: number): Date => {
-    const today = new Date();
-    const currentWeek = new Date(today);
-    currentWeek.setDate(today.getDate() - today.getDay() + 1 + (week * 7));
-    const dayIndex = daysOfWeek.findIndex(d => d.key === day.key);
-    const date = new Date(currentWeek);
-    date.setDate(currentWeek.getDate() + dayIndex);
-    // Pega o horário inicial do timeSlot
-    const [startHour, startMinute] = timeSlot.time.split('-')[0].split(':');
-    date.setHours(Number(startHour), Number(startMinute), 0, 0);
-    return date;
-  };
-
-  const getAvailability = (timeSlot: TimeSlot, day: Day, court: Court): boolean => {
-    const dayCode = day.key;
-    if (timeSlot.code.includes('246') && !['2', '4', '6'].includes(dayCode)) {
-      return false;
-    }
-    if (timeSlot.code.includes('35') && !['3', '5'].includes(dayCode)) {
-      return false;
-    }
-    const reservationKey = generateReservationKey(timeSlot, day, court, selectedWeek);
-    if (reservations.some(r => generateReservationKey(r.timeSlot, r.day, r.court, r.week) === reservationKey)) {
-      return false;
-    }
-    const random = Math.random();
-    return random > 0.3;
   };
 
   const getCurrentWeekDates = (): Day[] => {
     const today = new Date();
-    const currentWeek = new Date(today);
-    currentWeek.setDate(today.getDate() - today.getDay() + 1 + (selectedWeek * 7));
+    const currentWeekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1) + (selectedWeek * 7));
+
     return daysOfWeek.map((day, index) => {
-      const date = new Date(currentWeek);
-      date.setDate(currentWeek.getDate() + index);
+      const date = new Date(currentWeekStart);
+      date.setDate(currentWeekStart.getDate() + index);
       return {
         ...day,
         date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
@@ -151,119 +283,261 @@ const HorarioSemanal: React.FC = () => {
     });
   };
 
-  const weekDates = getCurrentWeekDates();
+  const weekDates = useMemo(() => getCurrentWeekDates(), [selectedWeek, daysOfWeek]);
 
-  const getSportIcon = (sport: string): string => {
-    const icons: { [key: string]: string } = {
-      'Futsal': '⚽',
-      'Natação': '🏊‍♀️',
-      'Basquete': '🏀',
-      'Vôlei de Praia': '🏐',
-      'Futebol': '⚽',
-      'Atletismo': '🏃‍♂️',
-      'Beach Tennis': '🏸',
-      'Tênis': '🎾',
-      'Vôlei': '🏐'
-    };
-    return icons[sport] || '🏟️';
+
+  const getReservationDate = (day: Day, timeSlot: TimeSlot, week: number): Date => {
+    const today = new Date();
+    const currentWeekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1) + (week * 7));
+
+    const dayIndex = daysOfWeek.findIndex(d => d.key === day.key);
+    const date = new Date(currentWeekStart);
+    date.setDate(currentWeekStart.getDate() + dayIndex);
+    const [startHour, startMinute] = timeSlot.time.split('-')[0].split(':');
+    date.setHours(Number(startHour), Number(startMinute), 0, 0);
+    return date;
   };
 
-  const getTypeIcon = (type: string): string => {
-    const icons: { [key: string]: string } = {
-      'Quadra': '🏀',
-      'Campo': '⚽',
-      'Piscina': '🏊‍♀️',
-      'Quadra de Tênis': '🎾',
-      'Pista de Atletismo': '🏃‍♂️',
-      'Quadra de Areia': '🏖️'
+  const getCellStatus = (timeSlot: TimeSlot, day: Day, court: Court): 'available' | 'occupied' | 'reserved' | 'not-applicable' => {
+    const isTimeSlotApplicable = (ts: TimeSlot, d: Day): boolean => {
+      const dayCode = d.key;
+      return (ts.code.includes('246') && ['2', '4', '6'].includes(dayCode)) ||
+             (ts.code.includes('35') && ['3', '5'].includes(dayCode));
     };
-    return icons[type] || '🏟️';
+
+    const isApplicable = isTimeSlotApplicable(timeSlot, day);
+    if (!isApplicable) return 'not-applicable';
+
+    const targetDate = getReservationDate(day, timeSlot, selectedWeek);
+    const targetDateUTC = new Date(targetDate.getTime() - (targetDate.getTimezoneOffset() * 60000));
+
+    const isReservedByMeLocally = reservations.some(r =>
+        r.court.id === court.id &&
+        r.day.key === day.key &&
+        r.timeSlot.code === timeSlot.code &&
+        r.week === selectedWeek
+    );
+    if (isReservedByMeLocally) {
+        return 'reserved';
+    }
+
+    const isDbReserved = dbReservations.some(dbRes => {
+        const dbResDate = new Date(dbRes.data);
+        const dbDayOfWeek = dbResDate.getDay();
+        let dbDayKeyForFrontend: string | undefined;
+        if (dbDayOfWeek >= 1 && dbDayOfWeek === parseInt(day.key)-1) {
+            dbDayKeyForFrontend = day.key;
+        } else {
+            return false;
+        }
+
+        // CORREÇÃO: Usando template literal correto aqui
+        const dbTimeHourMinute = `${dbResDate.getUTCHours().toString().padStart(2, '0')}:${dbResDate.getUTCMinutes().toString().padStart(2, '0')}`;
+
+        const isSameCourt = dbRes.quadra === court.id.toString();
+        const isSameDay = dbDayKeyForFrontend === day.key;
+        const isSameTime = timeSlot.time.startsWith(dbTimeHourMinute);
+        const isSameWeek = getWeekNumber(dbResDate) === getWeekNumber(targetDateUTC);
+
+        const isReservedBySomeoneElse = !dbRes.matriculas.includes(CURRENT_USER_MATRICULA);
+
+        return isSameCourt && isSameDay && isSameTime && isSameWeek && isReservedBySomeoneElse;
+    });
+
+    if (isDbReserved) {
+        return 'occupied';
+    }
+
+    return 'available';
   };
 
-  const getPeriodIcon = (period: string): string => {
-    const icons: { [key: string]: string } = {
-      'Todos': '🕐',
-      'Manhã': '🌅',
-      'Tarde': '☀️',
-      'Noite': '🌙'
-    };
-    return icons[period] || '🕐';
-  };
+  function getWeekNumber(d: Date): number {
+    const date = new Date(d.getTime());
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 4 - (date.getDay() || 7));
+    const yearStart = new Date(date.getFullYear(), 0, 1);
+    const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return weekNo;
+  }
 
   const isTimeSlotApplicable = (timeSlot: TimeSlot, day: Day): boolean => {
     const dayCode = day.key;
-    if (timeSlot.code.includes('246') && ['2', '4', '6'].includes(dayCode)) {
-      return true;
-    }
-    if (timeSlot.code.includes('35') && ['3', '5'].includes(dayCode)) {
-      return true;
-    }
-    return false;
+    return (timeSlot.code.includes('246') && ['2', '4', '6'].includes(dayCode)) ||
+           (timeSlot.code.includes('35') && ['3', '5'].includes(dayCode));
   };
 
+
   const getFilteredTimeSlots = (): TimeSlot[] => {
-    if (selectedPeriod === 'Todos') {
-      return timeSlots;
-    }
     return timeSlots.filter(slot => slot.label === selectedPeriod);
   };
 
-  const handleCellClick = (timeSlot: TimeSlot, day: Day, court: Court) => {
-    const isApplicable = isTimeSlotApplicable(timeSlot, day);
-    const isAvailable = isApplicable && getAvailability(timeSlot, day, court);
+  const handleCellClick = async (timeSlot: TimeSlot, day: Day, court: Court) => {
+    const status = getCellStatus(timeSlot, day, court);
+
+    if (status === 'not-applicable' || status === 'occupied') {
+        return;
+    }
+
     const reservationKey = generateReservationKey(timeSlot, day, court, selectedWeek);
-    if (!isApplicable) return;
-    if (reservations.some(r => generateReservationKey(r.timeSlot, r.day, r.court, r.week) === reservationKey)) {
-      // Cancelar reserva
-      setReservations(reservations.filter(r => generateReservationKey(r.timeSlot, r.day, r.court, r.week) !== reservationKey));
-    } else if (isAvailable) {
-      setPendingReservation({ timeSlot, day, court });
-      setShowReservationModal(true);
+    const existingReservation = reservations.find(r => generateReservationKey(r.timeSlot, r.day, r.court, r.week) === reservationKey);
+
+    if (existingReservation) {
+        const confirmCancel = window.confirm('Deseja cancelar esta reserva?');
+        if (confirmCancel) {
+            try {
+                const dbReservaToCancel = dbReservations.find(dbRes => {
+                    const dbResDate = new Date(dbRes.data);
+                    const dbDayOfWeek = dbResDate.getDay();
+                    let dbDayKeyForFrontend: string | undefined;
+                    if (dbDayOfWeek >= 1 && dbDayOfWeek === parseInt(day.key)-1) {
+                        dbDayKeyForFrontend = day.key;
+                    } else {
+                        return false;
+                    }
+                    const dbTimeHourMinute = `${dbResDate.getUTCHours().toString().padStart(2, '0')}:${dbResDate.getUTCMinutes().toString().padStart(2, '0')}`;
+
+                    const isSameCourt = dbRes.quadra === court.id.toString();
+                    const isSameDay = dbDayKeyForFrontend === day.key;
+                    const isSameTime = timeSlot.time.startsWith(dbTimeHourMinute);
+                    const isSameWeek = getWeekNumber(dbResDate) === getWeekNumber(getReservationDate(day, timeSlot, selectedWeek));
+                    const isMyReservationInDb = dbRes.matriculas.includes(CURRENT_USER_MATRICULA);
+
+                    return isSameCourt && isSameDay && isSameTime && isSameWeek && isMyReservationInDb;
+                });
+
+                if (!dbReservaToCancel || !dbReservaToCancel._id) {
+                    throw new Error('Reserva não encontrada no banco de dados para cancelar ou ID inválido.');
+                }
+
+                const response = await fetch(`http://localhost:3001/api/reservas/${dbReservaToCancel._id}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Falha ao cancelar reserva: ${errorData.message || response.status}`);
+                }
+
+                setDbReservations(prevDbReservations => prevDbReservations.filter(dbRes => dbRes._id !== dbReservaToCancel._id));
+                setReservations(prevReservations => prevReservations.filter(r => r !== existingReservation));
+
+                alert('Reserva cancelada com sucesso!');
+
+            } catch (error: any) {
+                console.error('Erro ao cancelar reserva:', error.message || error);
+                alert(`Erro ao cancelar reserva: ${error.message || 'Tente novamente.'}`);
+            }
+        }
+    } else {
+        setPendingReservation({ timeSlot, day, court });
+        setShowReservationModal(true);
     }
   };
 
-  const confirmReservation = () => {
+  const confirmReservation = async () => {
     if (pendingReservation) {
       const { timeSlot, day, court } = pendingReservation;
-      setReservations([
-        ...reservations,
-        {
-          timeSlot,
-          day,
-          court,
-          week: selectedWeek,
-          createdAt: new Date().toISOString()
-        }
-      ]);
-      setShowReservationModal(false);
-      setPendingReservation(null);
+
+      try {
+          const reservationDate = getReservationDate(day, timeSlot, selectedWeek);
+          
+          console.log('Quadras disponíveis:', dbCourts);
+          console.log('Procurando quadra para modalidade:', court.sport);
+          
+          // Encontrar a quadra correspondente no banco de dados
+          const dbCourt = dbCourts.find(q => q.modalidade === court.sport);
+          console.log('Quadra encontrada:', dbCourt);
+          
+          if (!dbCourt) {
+              throw new Error(`Quadra para modalidade ${court.sport} não encontrada no sistema`);
+          }
+
+          console.log('Buscando aluno com matrícula:', CURRENT_USER_MATRICULA);
+          // Buscar o ID do aluno usando a matrícula
+          const alunoResponse = await fetch(`http://localhost:3001/api/alunos/matricula/${CURRENT_USER_MATRICULA}`);
+          if (!alunoResponse.ok) {
+              throw new Error('Sua matrícula não está cadastrada no sistema. Por favor, faça seu cadastro primeiro.');
+          }
+          const alunoData = await alunoResponse.json();
+          console.log('Dados do aluno encontrado:', alunoData);
+          
+          if (!alunoData || !alunoData._id) {
+              throw new Error('Dados do aluno inválidos. Por favor, tente novamente.');
+          }
+
+          // Garantir que os IDs são strings válidas do MongoDB
+          const quadraId = String(dbCourt._id);
+          const alunoId = String(alunoData._id);
+
+          console.log('ID da quadra:', quadraId);
+          console.log('ID do aluno:', alunoId);
+
+          const reservaData = {
+              quadra: quadraId,
+              data: reservationDate.toISOString(),
+              matriculas: [alunoId] // Usando o ObjectId do aluno como string
+          };
+          
+          console.log('Dados da reserva que serão enviados:', reservaData);
+
+          const response = await fetch('http://localhost:3001/api/reservas', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(reservaData),
+          });
+
+          if (!response.ok) {
+              const errorData = await response.json();
+              console.error('Erro detalhado:', errorData);
+              throw new Error(`Falha ao criar reserva: ${errorData.error || response.status}`);
+          }
+
+          const responseData: BackendReserva = await response.json();
+          console.log('Resposta do servidor:', responseData);
+
+          setDbReservations(prevDbReservations => [...prevDbReservations, responseData]);
+
+          setReservations([
+              ...reservations,
+              {
+                  timeSlot,
+                  day,
+                  court,
+                  week: selectedWeek,
+                  createdAt: new Date().toISOString()
+              }
+          ]);
+
+          alert('Reserva confirmada com sucesso!');
+          setShowReservationModal(false);
+          setPendingReservation(null);
+
+      } catch (error: any) {
+          console.error('Erro ao confirmar reserva:', error.message || error);
+          alert(`Erro ao confirmar reserva: ${error.message || 'Tente novamente.'}`);
+      }
     }
   };
 
-  const cancelReservation = () => {
+  const cancelReservationModal = () => {
     setShowReservationModal(false);
     setPendingReservation(null);
   };
 
-  const getCellStatus = (timeSlot: TimeSlot, day: Day, court: Court): 'available' | 'occupied' | 'reserved' | 'not-applicable' => {
-    const isApplicable = isTimeSlotApplicable(timeSlot, day);
-    if (!isApplicable) return 'not-applicable';
-    const reservationKey = generateReservationKey(timeSlot, day, court, selectedWeek);
-    if (reservations.some(r => generateReservationKey(r.timeSlot, r.day, r.court, r.week) === reservationKey)) return 'reserved';
-    const isAvailable = getAvailability(timeSlot, day, court);
-    return isAvailable ? 'available' : 'occupied';
-  };
-
-  // Separar reservas futuras e passadas
   const now = new Date();
   const reservasFuturas = reservations.filter(r => getReservationDate(r.day, r.timeSlot, r.week) >= now);
   const reservasPassadas = reservations.filter(r => getReservationDate(r.day, r.timeSlot, r.week) < now);
 
-  const selectedCourts = courtsByType[selectedSport as keyof typeof courtsByType] || [];
-  const filteredTimeSlots = getFilteredTimeSlots();
+  const selectedCourts = useMemo(() =>
+    allCourts.filter(court => court.locationType === selectedLocationType),
+    [allCourts, selectedLocationType]
+  );
+  const filteredTimeSlots = useMemo(() => getFilteredTimeSlots(), [selectedPeriod, timeSlots]);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="schedule-page-wrapper">
       <Navbar />
       <div className="schedule-page">
         {/* Abas */}
@@ -281,34 +555,30 @@ const HorarioSemanal: React.FC = () => {
             Minhas Reservas
           </button>
         </div>
+
         {/* Conteúdo das Abas */}
         {activeTab === 'horarios' && (
           <>
-            {/* Header */}
             <header className="schedule-header">
               <div className="header-container">
-                <div className="header-left">
-                  <button className="back-button" onClick={() => window.history.back()}>
-                    ← Voltar
-                  </button>
-                  <h1 className="page-title">📅 Horários e Reservas</h1>
-                </div>
+                <button className="back-button" onClick={() => window.history.back()}>
+                  ← Voltar
+                </button>
+                <h1 className="page-title">📅 Horários e Reservas</h1>
                 <div className="week-navigation">
-                  <button 
+                  <button
                     className="week-nav-button"
                     onClick={() => setSelectedWeek(selectedWeek - 1)}
                     disabled={selectedWeek <= 0}
-                    style={{ 
-                      opacity: selectedWeek <= 0 ? 0.5 : 1,
-                      cursor: selectedWeek <= 0 ? 'not-allowed' : 'pointer'
-                    }}
+                    style={{ opacity: selectedWeek <= 0 ? 0.5 : 1, cursor: selectedWeek <= 0 ? 'not-allowed' : 'pointer' }}
                   >
                     ← Anterior
                   </button>
                   <span className="current-week">
+                    {/* CORREÇÃO: Template literal com backticks ` ` */}
                     {selectedWeek === 0 ? 'Esta Semana' : `Semana ${selectedWeek > 0 ? '+' : ''}${selectedWeek}`}
                   </span>
-                  <button 
+                  <button
                     className="week-nav-button"
                     onClick={() => setSelectedWeek(selectedWeek + 1)}
                   >
@@ -317,158 +587,132 @@ const HorarioSemanal: React.FC = () => {
                 </div>
               </div>
             </header>
+
             <div className="schedule-content">
               {/* Seletores */}
               <div className="selectors-container">
-                {/* Seletor de Tipo de Espaço */}
-                <div className="selector-section">
-                  <h2 className="selector-title">Tipo de Espaço:</h2>
-                  <div className="selector-buttons">
-                    {Object.keys(courtsByType).map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setSelectedSport(type)}
-                        className={`selector-button ${selectedSport === type ? 'active' : ''}`}
-                      >
-                        <span className="selector-button-icon">{getTypeIcon(type)}</span>
-                        <span className="selector-button-text">{type}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {/* Seletor de Período */}
-                <div className="selector-section">
-                  <h2 className="selector-title">Período:</h2>
-                  <div className="selector-buttons">
-                    {periods.map((period) => (
-                      <button
-                        key={period}
-                        onClick={() => setSelectedPeriod(period)}
-                        className={`selector-button ${selectedPeriod === period ? 'active' : ''}`}
-                      >
-                        <span className="selector-button-icon">{getPeriodIcon(period)}</span>
-                        <span className="selector-button-text">{period}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <SelectorButtons
+                  options={locationTypes}
+                  selectedOption={selectedLocationType}
+                  onSelect={setSelectedLocationType}
+                  getIcon={getLocationTypeIcon}
+                  title="Local"
+                />
+                <SelectorButtons
+                  options={periods}
+                  selectedOption={selectedPeriod}
+                  onSelect={setSelectedPeriod}
+                  getIcon={getPeriodIcon}
+                  title="Período"
+                />
               </div>
+
               {/* Legenda */}
               <div className="legend">
-                <div className="legend-item">
-                  <div className="legend-color available"></div>
-                  <span>Disponível</span>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color reserved"></div>
-                  <span>Minha Reserva</span>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color occupied"></div>
-                  <span>Ocupado</span>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color not-applicable"></div>
-                  <span>N/A</span>
-                </div>
+                <div className="legend-item"><div className="legend-color available"></div><span>Disponível</span></div>
+                <div className="legend-item"><div className="legend-color reserved"></div><span>Minha Reserva</span></div>
+                <div className="legend-item"><div className="legend-color occupied"></div><span>Ocupado</span></div>
+                <div className="legend-item"><div className="legend-color not-applicable"></div><span>N/A</span></div>
                 <span className="legend-info">246=Seg/Qua/Sex | 35=Ter/Qui | Clique para reservar</span>
               </div>
-              {/* Grid da Modalidade Selecionada */}
+
+              {/* Grid dos Locais Selecionados */}
               <div className="sport-section">
                 <div className="sport-header">
                   <div className="sport-header-left">
-                    <span className="sport-icon">{getSportIcon(selectedSport)}</span>
-                    <h2 className="sport-title">{selectedSport}</h2>
+                    <span className="sport-icon">{getLocationTypeIcon(selectedLocationType)}</span>
+                    <h2 className="sport-title">{selectedLocationType}</h2>
                   </div>
                   <div className="sport-header-right">
                     <span className="period-icon">{getPeriodIcon(selectedPeriod)}</span>
                     <span className="period-title">{selectedPeriod}</span>
                   </div>
                 </div>
-                {selectedCourts.map((court) => (
-                  <div key={court.id} className="court-schedule">
-                    <div className="court-name-header">
-                      <h3 className="court-name">{court.name}</h3>
-                    </div>
-                    <div className="schedule-grid">
-                      {/* Header dos dias */}
-                      <div className="grid-header">
-                        <div className="time-column-header">Horário</div>
-                        {weekDates.map((day) => (
-                          <div key={day.key} className="day-header">
-                            <div className="day-name">{day.short}</div>
-                            <div className="day-date">{day.date}</div>
+                {isLoadingReservations ? (
+                    <div className="loading-message">Carregando horários...</div>
+                ) : selectedCourts.length === 0 ? (
+                  <div className="no-courts-message">
+                    Não há locais disponíveis para esta categoria.
+                  </div>
+                ) : (
+                  selectedCourts.map((court) => (
+                    <div key={court.id} className="court-schedule">
+                      <h3 className="court-name">{court.name} ({court.sport})</h3>
+                      <div className="schedule-grid">
+                        <div className="grid-header">
+                          <div className="time-column-header">Horário</div>
+                          {weekDates.map((day) => (
+                            <div key={day.key} className="day-header">
+                              <div className="day-name">{day.short}</div>
+                              <div className="day-date">{day.date}</div>
+                            </div>
+                          ))}
+                        </div>
+                        {filteredTimeSlots.map((timeSlot) => (
+                          <div key={timeSlot.code} className="schedule-row">
+                            <div className="time-cell">
+                              <div className="time-display">{timeSlot.time}</div>
+                              <div className="time-code">{timeSlot.code}</div>
+                            </div>
+                            {weekDates.map((day) => {
+                              const status = getCellStatus(timeSlot, day, court);
+                              return (
+                                <div
+                                  // CORREÇÃO: Template literal com backticks ` `
+                                  key={`${court.id}-${timeSlot.code}-${day.key}`}
+                                  className={`schedule-cell ${status}`}
+                                  onClick={() => handleCellClick(timeSlot, day, court)}
+                                >
+                                  {status === 'reserved' && (
+                                    <span className="reservation-icon">📌</span>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         ))}
                       </div>
-                      {/* Linhas de horários */}
-                      {filteredTimeSlots.map((timeSlot) => (
-                        <div key={timeSlot.code} className="schedule-row">
-                          <div className="time-cell">
-                            <div className="time-display">{timeSlot.time}</div>
-                            <div className="time-code">{timeSlot.code}</div>
-                          </div>
-                          {weekDates.map((day) => {
-                            const status = getCellStatus(timeSlot, day, court);
-                            const reservationKey = generateReservationKey(timeSlot, day, court, selectedWeek);
-                            return (
-                              <div
-                                key={reservationKey}
-                                className={`schedule-cell ${status}`}
-                                onClick={() => handleCellClick(timeSlot, day, court)}
-                              >
-                                <div className={`status-dot ${
-                                  status === 'not-applicable' ? 'gray' :
-                                  status === 'available' ? 'green' :
-                                  status === 'reserved' ? 'blue' : 'red'
-                                }`}></div>
-                                {status === 'reserved' && (
-                                  <div className="reservation-icon">📌</div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ))}
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
+
             {/* Modal de Confirmação */}
             {showReservationModal && pendingReservation && (
               <div className="modal-overlay">
                 <div className="modal">
                   <div className="modal-header">
                     <h3>Confirmar Reserva</h3>
-                    <button className="modal-close" onClick={cancelReservation}>×</button>
+                    <button className="modal-close" onClick={cancelReservationModal}>×</button>
                   </div>
                   <div className="modal-content">
                     <div className="reservation-details">
+                      {/* LOCAL */}
                       <div className="detail-item">
-                        <span className="detail-label">Modalidade:</span>
+                        <span className="detail-label"><span role="img" aria-label="local">📍</span> Local:</span>
                         <span className="detail-value">
-                          {getSportIcon(pendingReservation.court.sport)} {pendingReservation.court.sport}
+                          {pendingReservation.court.locationType} - {pendingReservation.court.name}
+                          <br />
+                          <small>Modalidade: {pendingReservation.court.sport}</small>
                         </span>
                       </div>
+                      {/* DATA */}
                       <div className="detail-item">
-                        <span className="detail-label">Local:</span>
-                        <span className="detail-value">{pendingReservation.court.name}</span>
-                      </div>
-                      <div className="detail-item">
-                        <span className="detail-label">Data:</span>
+                        <span className="detail-label"><span role="img" aria-label="data">📅</span> Data:</span>
                         <span className="detail-value">
                           {pendingReservation.day.label} ({pendingReservation.day.date})
                         </span>
                       </div>
+                      {/* HORÁRIO */}
                       <div className="detail-item">
-                        <span className="detail-label">Horário:</span>
+                        <span className="detail-label"><span role="img" aria-label="horário">⌚</span> Horário:</span>
                         <span className="detail-value">{pendingReservation.timeSlot.time}</span>
                       </div>
                     </div>
                   </div>
                   <div className="modal-actions">
-                    <button className="btn-secondary" onClick={cancelReservation}>
+                    <button className="btn-secondary" onClick={cancelReservationModal}>
                       Cancelar
                     </button>
                     <button className="btn-primary" onClick={confirmReservation}>
@@ -480,6 +724,7 @@ const HorarioSemanal: React.FC = () => {
             )}
           </>
         )}
+
         {activeTab === 'reservas' && (
           <div className="reservas-list-section">
             <h2 className="reservas-title">Minhas Reservas</h2>
@@ -491,8 +736,8 @@ const HorarioSemanal: React.FC = () => {
                 <ul className="reservas-list">
                   {reservasFuturas.map((r, idx) => (
                     <li key={idx} className="reserva-item futura">
-                      <span className="reserva-icon">{getSportIcon(r.court.sport)}</span>
-                      <span><b>{r.court.sport}</b> - {r.court.name}</span>
+                      <span className="reserva-icon">{getLocationTypeIcon(r.court.locationType)}</span>
+                      <span><b>{r.court.locationType}</b> - {r.court.name} ({r.court.sport})</span>
                       <span>{r.day.label} ({r.day.date})</span>
                       <span>{r.timeSlot.time}</span>
                     </li>
@@ -508,8 +753,8 @@ const HorarioSemanal: React.FC = () => {
                 <ul className="reservas-list">
                   {reservasPassadas.map((r, idx) => (
                     <li key={idx} className="reserva-item passada">
-                      <span className="reserva-icon">{getSportIcon(r.court.sport)}</span>
-                      <span><b>{r.court.sport}</b> - {r.court.name}</span>
+                      <span className="reserva-icon">{getLocationTypeIcon(r.court.locationType)}</span>
+                      <span><b>{r.court.locationType}</b> - {r.court.name} ({r.court.sport})</span>
                       <span>{r.day.label} ({r.day.date})</span>
                       <span>{r.timeSlot.time}</span>
                     </li>

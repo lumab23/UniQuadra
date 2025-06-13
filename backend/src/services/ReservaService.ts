@@ -8,6 +8,55 @@ import QuadraSchema from '../models/Quadra';
 
 class ReservaService {
     async criarReserva(dados: any){
+        // Validar se a quadra existe
+        const quadra = await QuadraRepository.buscarQuadraPorId(dados.quadra);
+        if (!quadra) {
+            throw new Error('Quadra não encontrada');
+        }
+
+        // Validar se a quadra está disponível
+        if (quadra.status !== 'Disponível') {
+            throw new Error('Quadra não está disponível para reserva');
+        }
+
+        // Validar se a data é futura
+        const dataReserva = new Date(dados.data);
+        if (dataReserva < new Date()) {
+            throw new Error('A data da reserva deve ser futura');
+        }
+
+        // Validar se há conflito de horário
+        const reservasExistentes = await ReservaRepository.listarReserva();
+        const conflito = reservasExistentes.some((reserva: any) => {
+            const dataExistente = new Date(reserva.data);
+            return dataExistente.getTime() === dataReserva.getTime() && 
+                   reserva.quadra.toString() === dados.quadra;
+        });
+
+        if (conflito) {
+            throw new Error('Já existe uma reserva para este horário nesta quadra');
+        }
+
+        // Validar se as matrículas existem
+        for (const matricula of dados.matriculas) {
+            try {
+                const aluno = await AlunoRepository.buscarAlunoPorId(matricula);
+                if (!aluno) {
+                    throw new Error(`Aluno com ID ${matricula} não encontrado`);
+                }
+            } catch (error) {
+                if (error instanceof mongoose.Error.CastError) {
+                    throw new Error(`ID de aluno inválido: ${matricula}`);
+                }
+                throw error;
+            }
+        }
+
+        // Validar se não excede a capacidade da quadra
+        if (dados.matriculas.length > quadra.capacidade) {
+            throw new Error(`A quadra suporta apenas ${quadra.capacidade} pessoas`);
+        }
+
         return await ReservaRepository.criarReserva(dados);
     }
     async listarReserva(){

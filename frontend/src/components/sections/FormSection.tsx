@@ -102,31 +102,54 @@ const FormSection = ({ onCardCreated }: FormSectionProps) => {
   const handleExistingStudentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateExistingStudentForm()) {
-      setToast({ message: "Preencha os dados para acessar a carteirinha, fazer reservas e ver suas reservas", type: "error" });
+      setToast({ message: "Preencha os dados para acessar a carteirinha", type: "error" });
       return;
     }
-    // Em produção, aqui seria feita uma chamada para a API
+
     const isValidStudent = existingStudentData.matricula.length === 7 && 
                           existingStudentData.email.endsWith('@edu.unifor.br');
 
     if (!isValidStudent) {
-      setToast({ message: "Matrícula ou email inválidos!", type: "error" });
+      setToast({ message: "Matrícula deve ter 7 dígitos e email deve ser @edu.unifor.br!", type: "error" });
       return;
     }
 
     setLoading(true);
     try {
-      const response = await api.post("/carteirinhas/validar", existingStudentData);
+      const dadosParaValidacao = {
+        matricula: existingStudentData.matricula.trim(),
+        email: existingStudentData.email.toLowerCase().trim()
+      };
+      
+      console.log('Enviando dados para validação:', dadosParaValidacao);
+      const response = await api.post("/carteirinhas/validar", dadosParaValidacao);
+      console.log('Resposta completa da validação:', response);
+      console.log('Dados da resposta:', response.data);
+      
       if (response.data.valid) {
         setToast({ message: "Acesso liberado!", type: "success" });
+        // Salvar dados do usuário no localStorage
+        const userData = {
+          matricula: existingStudentData.matricula,
+          email: existingStudentData.email,
+          carteirinha: response.data.carteirinha
+        };
+        console.log('Salvando dados do usuário:', userData);
+        localStorage.setItem('@UniQuadra:user', JSON.stringify(userData));
         setTimeout(() => {
           setIsAuthenticated(true);
         }, 1200);
       } else {
-        setToast({ message: "Carteirinha não encontrada!", type: "error" });
+        console.log('Validação falhou:', response.data.message);
+        setToast({ message: response.data.message || "Carteirinha não encontrada!", type: "error" });
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.message || "Erro ao validar carteirinha.";
+      console.error('Erro detalhado na validação:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+      const msg = err?.response?.data?.message || "Erro ao validar carteirinha. Verifique seus dados e tente novamente.";
       setToast({ message: msg, type: "error" });
     } finally {
       setLoading(false);
