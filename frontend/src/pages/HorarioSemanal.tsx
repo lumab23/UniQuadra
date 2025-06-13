@@ -4,7 +4,7 @@ import Navbar from '../components/layout/Navbar';
 
 const HorarioSemanal: React.FC = () => {
   const [selectedWeek, setSelectedWeek] = useState(0);
-  const [selectedSport, setSelectedSport] = useState('Natação');
+  const [selectedSport, setSelectedSport] = useState('Quadra');
   const [selectedPeriod, setSelectedPeriod] = useState('Todos');
   const [activeTab, setActiveTab] = useState<'horarios' | 'reservas'>('horarios');
   const [reservations, setReservations] = useState<Reserva[]>([]);
@@ -25,6 +25,7 @@ const HorarioSemanal: React.FC = () => {
     id: number;
     name: string;
     sport: string;
+    type: string;
   }
 
   interface Day {
@@ -69,41 +70,34 @@ const HorarioSemanal: React.FC = () => {
     { key: '6', label: 'Sexta-feira', short: 'SEX' }
   ];
 
-  const courtsBySport = {
-    'Futsal': [
-      { id: 1, name: 'Futsal 1', sport: 'Futsal' },
-      { id: 2, name: 'Futsal 2', sport: 'Futsal' }
+  const courtsByType = {
+    'Quadra': [
+      { id: 1, name: 'Quadra 1', sport: 'Futsal', type: 'Quadra' },
+      { id: 2, name: 'Quadra 2', sport: 'Futsal', type: 'Quadra' },
+      { id: 5, name: 'Quadra 3', sport: 'Basquete', type: 'Quadra' },
+      { id: 6, name: 'Quadra 4', sport: 'Basquete', type: 'Quadra' },
+      { id: 17, name: 'Quadra 5', sport: 'Vôlei', type: 'Quadra' },
+      { id: 18, name: 'Quadra 6', sport: 'Vôlei', type: 'Quadra' }
     ],
-    'Natação': [
-      { id: 3, name: 'Piscina Olímpica', sport: 'Natação' }
+    'Campo': [
+      { id: 10, name: 'Campo Society', sport: 'Futebol', type: 'Campo' }
     ],
-    'Basquete': [
-      { id: 5, name: 'Quadra 1', sport: 'Basquete' },
-      { id: 6, name: 'Quadra 2', sport: 'Basquete' }
+    'Piscina': [
+      { id: 3, name: 'Piscina Olímpica', sport: 'Natação', type: 'Piscina' }
     ],
-    'Vôlei de Praia': [
-      { id: 7, name: 'Quadra Areia 1', sport: 'Vôlei de Praia' },
-      { id: 8, name: 'Quadra Areia 2', sport: 'Vôlei de Praia' }
+    'Quadra de Tênis': [
+      { id: 15, name: 'Quadra Saibro 1', sport: 'Tênis', type: 'Quadra de Tênis' },
+      { id: 16, name: 'Quadra Saibro 2', sport: 'Tênis', type: 'Quadra de Tênis' }
     ],
-    'Futebol': [
-      { id: 9, name: 'Campo Oficial', sport: 'Futebol' },
-      { id: 10, name: 'Campo Society', sport: 'Futebol' }
+    'Pista de Atletismo': [
+      { id: 11, name: 'Pista Oficial', sport: 'Atletismo', type: 'Pista de Atletismo' },
+      { id: 12, name: 'Campo de Saltos', sport: 'Atletismo', type: 'Pista de Atletismo' }
     ],
-    'Atletismo': [
-      { id: 11, name: 'Pista Oficial', sport: 'Atletismo' },
-      { id: 12, name: 'Campo de Saltos', sport: 'Atletismo' }
-    ],
-    'Beach Tennis': [
-      { id: 13, name: 'Quadra Areia 1', sport: 'Beach Tennis' },
-      { id: 14, name: 'Quadra Areia 2', sport: 'Beach Tennis' }
-    ],
-    'Tênis': [
-      { id: 15, name: 'Quadra Saibro 1', sport: 'Tênis' },
-      { id: 16, name: 'Quadra Saibro 2', sport: 'Tênis' }
-    ],
-    'Vôlei': [
-      { id: 17, name: 'Quadra Coberta 1', sport: 'Vôlei' },
-      { id: 18, name: 'Quadra Coberta 2', sport: 'Vôlei' }
+    'Quadra de Areia': [
+      { id: 7, name: 'Quadra Areia 1', sport: 'Vôlei de Praia', type: 'Quadra de Areia' },
+      { id: 8, name: 'Quadra Areia 2', sport: 'Vôlei de Praia', type: 'Quadra de Areia' },
+      { id: 13, name: 'Quadra Areia 3', sport: 'Beach Tennis', type: 'Quadra de Areia' },
+      { id: 14, name: 'Quadra Areia 4', sport: 'Beach Tennis', type: 'Quadra de Areia' }
     ]
   };
 
@@ -172,6 +166,18 @@ const HorarioSemanal: React.FC = () => {
       'Vôlei': '🏐'
     };
     return icons[sport] || '🏟️';
+  };
+
+  const getTypeIcon = (type: string): string => {
+    const icons: { [key: string]: string } = {
+      'Quadra': '🏀',
+      'Campo': '⚽',
+      'Piscina': '🏊‍♀️',
+      'Quadra de Tênis': '🎾',
+      'Pista de Atletismo': '🏃‍♂️',
+      'Quadra de Areia': '🏖️'
+    };
+    return icons[type] || '🏟️';
   };
 
   const getPeriodIcon = (period: string): string => {
@@ -253,7 +259,7 @@ const HorarioSemanal: React.FC = () => {
   const reservasFuturas = reservations.filter(r => getReservationDate(r.day, r.timeSlot, r.week) >= now);
   const reservasPassadas = reservations.filter(r => getReservationDate(r.day, r.timeSlot, r.week) < now);
 
-  const selectedCourts = courtsBySport[selectedSport as keyof typeof courtsBySport] || [];
+  const selectedCourts = courtsByType[selectedSport as keyof typeof courtsByType] || [];
   const filteredTimeSlots = getFilteredTimeSlots();
 
   return (
@@ -314,18 +320,18 @@ const HorarioSemanal: React.FC = () => {
             <div className="schedule-content">
               {/* Seletores */}
               <div className="selectors-container">
-                {/* Seletor de Modalidade */}
+                {/* Seletor de Tipo de Espaço */}
                 <div className="selector-section">
-                  <h2 className="selector-title">Modalidade:</h2>
+                  <h2 className="selector-title">Tipo de Espaço:</h2>
                   <div className="selector-buttons">
-                    {Object.keys(courtsBySport).map((sport) => (
+                    {Object.keys(courtsByType).map((type) => (
                       <button
-                        key={sport}
-                        onClick={() => setSelectedSport(sport)}
-                        className={`selector-button ${selectedSport === sport ? 'active' : ''}`}
+                        key={type}
+                        onClick={() => setSelectedSport(type)}
+                        className={`selector-button ${selectedSport === type ? 'active' : ''}`}
                       >
-                        <span className="selector-button-icon">{getSportIcon(sport)}</span>
-                        <span className="selector-button-text">{sport}</span>
+                        <span className="selector-button-icon">{getTypeIcon(type)}</span>
+                        <span className="selector-button-text">{type}</span>
                       </button>
                     ))}
                   </div>
