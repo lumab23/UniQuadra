@@ -7,7 +7,7 @@ dotenv.config();
 const dbPassword = process.env.DB_PASSWORD;
 
 const options = {
-  serverSelectionTimeoutMS: 5000, 
+  serverSelectionTimeoutMS: 20000, 
   socketTimeoutMS: 45000, 
   connectTimeoutMS: 10000, 
   maxPoolSize: 10,

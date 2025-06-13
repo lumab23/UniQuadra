@@ -53,6 +53,5 @@ CarteirinhaSchema.method('isValida', function (): boolean {
 CarteirinhaSchema.index({ aluno: 1 });
 CarteirinhaSchema.index({ validade: 1 });
 CarteirinhaSchema.index({ status: 1 });
-CarteirinhaSchema.index({ codigo: 1 });
 
 export default model<ICarteirinha>('Carteirinha', CarteirinhaSchema);
