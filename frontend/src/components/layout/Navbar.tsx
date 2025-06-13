@@ -97,7 +97,7 @@ const Navbar = () => {
   const handleAdminClick = (): void => {
     setShowNavItems(false);
     navigate("/admin/login");
-    console.log("Unifor Sports Online clicked - Admin login");
+    console.log("UniQuadra clicked - Admin login");
   };
 
   return (
@@ -109,7 +109,7 @@ const Navbar = () => {
             <div className="logo-icon">
               <span>U</span>
             </div>
-            <span className="logo-text">UNIFOR SPORTS</span>
+            <span className="logo-text">UniQuadra</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -133,7 +133,7 @@ const Navbar = () => {
               onClick={handleAdminClick}
               className="admin-button"
             >
-              Unifor Sports Online
+              UniQuadra
             </button>
           </div>
 
@@ -177,7 +177,7 @@ const Navbar = () => {
               }}
               className="mobile-menu-item admin-mobile"
             >
-              Unifor Sports Online
+              UniQuadra
             </button>
           </div>
         )}

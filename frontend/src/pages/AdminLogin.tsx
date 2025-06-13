@@ -113,7 +113,7 @@ const AdminLogin: React.FC = () => {
               <span>🔐</span>
             </div>
             <h1 className="login-title">Acesso Administrativo</h1>
-            <p className="login-subtitle">Unifor Sports Online</p>
+            <p className="login-subtitle">UniQuadra</p>
           </div>
 
           <form onSubmit={handleSubmit} className="login-form">

@@ -27,7 +27,7 @@ const HeroSection = () => {
       
       <div className="hero-content">
         <h1 className="hero-title">
-          UNIFOR SPORTS
+          UniQuadra
         </h1>
         <p className="hero-description">
           Sua plataforma esportiva completa para uma vida mais ativa e saudável

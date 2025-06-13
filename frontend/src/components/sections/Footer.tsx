@@ -10,7 +10,7 @@ const Footer = () => {
               <div className="footer-logo">
                 <span className="footer-logo-text">U</span>
               </div>
-              <span className="footer-brand-name">UNIFOR SPORTS</span>
+              <span className="footer-brand-name">UniQuadra</span>
             </div>
             <p className="footer-description">
               Promovendo o esporte e a qualidade de vida na comunidade universitária.
@@ -38,7 +38,7 @@ const Footer = () => {
         </div>
         
         <div className="footer-copyright">
-          <p>&copy; 2024 UNIFOR SPORTS. Todos os direitos reservados.</p>
+          <p>&copy; 2024 UniQuadra. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>
