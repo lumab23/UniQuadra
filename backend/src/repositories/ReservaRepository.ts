@@ -17,7 +17,7 @@ class ReservaRepository {
             .populate({
                 path: 'quadra',
                 model: 'Quadra',
-                select: 'modalidade'
+                select: 'modalidade status capacidade'
             })
             .lean();
     }

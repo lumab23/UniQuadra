@@ -80,6 +80,7 @@ const AdminDashboard: React.FC = () => {
 
             console.log('Dados da reserva individual:', reserva);
             console.log('Dados do aluno na reserva:', reserva.matriculas);
+            console.log('Dados da quadra:', reserva.quadra);
 
             // Buscar informações do aluno
             let aluno;
@@ -97,11 +98,32 @@ const AdminDashboard: React.FC = () => {
               aluno = Array.isArray(reserva.matriculas) ? reserva.matriculas[0] : null;
             }
 
+            // Buscar informações da quadra se necessário
+            let quadra;
+            if (typeof reserva.quadra === 'string') {
+              try {
+                const quadraResponse = await api.get(`/quadras/${reserva.quadra}`);
+                quadra = quadraResponse.data;
+                console.log('Dados da quadra buscados:', quadra);
+              } catch (error) {
+                console.error('Erro ao buscar dados da quadra:', error);
+                throw new Error('Erro ao buscar dados da quadra');
+              }
+            } else {
+              quadra = reserva.quadra;
+            }
+
             console.log('Dados do aluno extraídos:', aluno);
+            console.log('Dados da quadra extraídos:', quadra);
 
             if (!aluno || !aluno.nome) {
               console.error('Dados do aluno incompletos:', aluno);
               throw new Error('Dados do aluno incompletos');
+            }
+
+            if (!quadra || !quadra.modalidade) {
+              console.error('Dados da quadra incompletos:', quadra);
+              throw new Error('Dados da quadra incompletos');
             }
 
             return {
@@ -109,8 +131,8 @@ const AdminDashboard: React.FC = () => {
               studentName: aluno.nome,
               studentMatricula: aluno.matricula || 'N/A',
               studentEmail: aluno.email || 'N/A',
-              sport: reserva.quadra?.modalidade || 'Não especificado',
-              court: `Quadra ${reserva.quadra?.modalidade || 'não especificada'}`,
+              sport: quadra.modalidade,
+              court: `Quadra ${quadra.modalidade}`,
               date: dataReserva.toISOString().split('T')[0],
               dayOfWeek: dataReserva.toLocaleDateString('pt-BR', { weekday: 'long' }),
               timeSlot: dataReserva.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
