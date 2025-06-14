@@ -14,11 +14,6 @@ class ReservaService {
             throw new Error('Quadra não encontrada');
         }
 
-        // Validar se a quadra está disponível
-        if (quadra.status !== 'Disponível') {
-            throw new Error('Quadra não está disponível para reserva');
-        }
-
         // Validar se a data é futura
         const dataReserva = new Date(dados.data);
         if (dataReserva < new Date()) {
@@ -37,27 +32,36 @@ class ReservaService {
             throw new Error('Já existe uma reserva para este horário nesta quadra');
         }
 
+        // Converter os IDs dos alunos para ObjectId
+        const matriculasObjectIds = dados.matriculas.map((id: string) => new mongoose.Types.ObjectId(id));
+
         // Validar se as matrículas existem
-        for (const matricula of dados.matriculas) {
+        for (const matriculaId of matriculasObjectIds) {
             try {
-                const aluno = await AlunoRepository.buscarAlunoPorId(matricula);
+                const aluno = await AlunoRepository.buscarAlunoPorId(matriculaId);
                 if (!aluno) {
-                    throw new Error(`Aluno com ID ${matricula} não encontrado`);
+                    throw new Error(`Aluno com ID ${matriculaId} não encontrado`);
                 }
             } catch (error) {
                 if (error instanceof mongoose.Error.CastError) {
-                    throw new Error(`ID de aluno inválido: ${matricula}`);
+                    throw new Error(`ID de aluno inválido: ${matriculaId}`);
                 }
                 throw error;
             }
         }
 
         // Validar se não excede a capacidade da quadra
-        if (dados.matriculas.length > quadra.capacidade) {
+        if (matriculasObjectIds.length > quadra.capacidade) {
             throw new Error(`A quadra suporta apenas ${quadra.capacidade} pessoas`);
         }
 
-        return await ReservaRepository.criarReserva(dados);
+        // Criar a reserva com os ObjectIds convertidos
+        const dadosReserva = {
+            ...dados,
+            matriculas: matriculasObjectIds
+        };
+
+        return await ReservaRepository.criarReserva(dadosReserva);
     }
     async listarReserva(){
         return await ReservaRepository.listarReserva();

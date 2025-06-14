@@ -63,11 +63,13 @@ const AdminDashboard: React.FC = () => {
         const reservasResponse = await api.get('/reservas');
         const reservasFromApi = reservasResponse.data;
         
+        console.log('Dados brutos das reservas:', reservasFromApi);
+        
         if (!Array.isArray(reservasFromApi)) {
           throw new Error('Formato de dados inválido para reservas');
         }
 
-        const transformedReservas: Reservation[] = reservasFromApi.map((reserva: any) => {
+        const transformedReservas: Reservation[] = await Promise.all(reservasFromApi.map(async (reserva: any) => {
           try {
             const dataReserva = new Date(reserva.data);
             
@@ -76,11 +78,37 @@ const AdminDashboard: React.FC = () => {
               throw new Error('Data inválida');
             }
 
+            console.log('Dados da reserva individual:', reserva);
+            console.log('Dados do aluno na reserva:', reserva.matriculas);
+
+            // Buscar informações do aluno
+            let aluno;
+            if (typeof reserva.matriculas?.[0] === 'string') {
+              // Se for apenas o ID, buscar os dados do aluno
+              try {
+                const alunoResponse = await api.get(`/alunos/${reserva.matriculas[0]}`);
+                aluno = alunoResponse.data;
+                console.log('Dados do aluno buscados:', aluno);
+              } catch (error) {
+                console.error('Erro ao buscar dados do aluno:', error);
+                throw new Error('Erro ao buscar dados do aluno');
+              }
+            } else {
+              aluno = Array.isArray(reserva.matriculas) ? reserva.matriculas[0] : null;
+            }
+
+            console.log('Dados do aluno extraídos:', aluno);
+
+            if (!aluno || !aluno.nome) {
+              console.error('Dados do aluno incompletos:', aluno);
+              throw new Error('Dados do aluno incompletos');
+            }
+
             return {
               id: reserva._id || 'ID não encontrado',
-              studentName: reserva.matriculas?.[0]?.nome || 'Aluno não encontrado',
-              studentMatricula: reserva.matriculas?.[0]?.matricula || 'N/A',
-              studentEmail: reserva.matriculas?.[0]?.email || 'N/A',
+              studentName: aluno.nome,
+              studentMatricula: aluno.matricula || 'N/A',
+              studentEmail: aluno.email || 'N/A',
               sport: reserva.quadra?.modalidade || 'Não especificado',
               court: `Quadra ${reserva.quadra?.modalidade || 'não especificada'}`,
               date: dataReserva.toISOString().split('T')[0],
@@ -105,7 +133,7 @@ const AdminDashboard: React.FC = () => {
               createdAt: new Date().toISOString()
             };
           }
-        });
+        }));
 
         setReservations(transformedReservas);
       } else {
@@ -241,7 +269,6 @@ const AdminDashboard: React.FC = () => {
                   <thead>
                     <tr>
                       <th>Aluno</th>
-                      <th>Modalidade</th>
                       <th>Local</th>
                       <th>Data/Hora</th>
                       <th>Status</th>
@@ -251,7 +278,7 @@ const AdminDashboard: React.FC = () => {
                   <tbody>
                     {reservations.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>
                           Nenhuma reserva encontrada
                         </td>
                       </tr>
@@ -264,12 +291,6 @@ const AdminDashboard: React.FC = () => {
                               <div className="student-details">
                                 {reservation.studentMatricula} • {reservation.studentEmail}
                               </div>
-                            </div>
-                          </td>
-                          <td>
-                            <div className="sport-info">
-                              <span className="sport-icon">{getSportIcon(reservation.sport)}</span>
-                              {reservation.sport}
                             </div>
                           </td>
                           <td>{reservation.court}</td>

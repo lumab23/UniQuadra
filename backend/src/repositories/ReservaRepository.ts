@@ -8,10 +8,23 @@ class ReservaRepository {
         return await reservaNova.save();
     }
     async listarReserva(){
-        return await Reserva.find();
+        return await Reserva.find()
+            .populate({
+                path: 'matriculas',
+                model: 'Aluno',
+                select: 'nome matricula email'
+            })
+            .populate({
+                path: 'quadra',
+                model: 'Quadra',
+                select: 'modalidade'
+            })
+            .lean();
     }
     async buscarReservaPorMatricula(matricula: string){
-        return await Reserva.find({ matricula: matricula });
+        const aluno = await mongoose.model('Aluno').findOne({ matricula });
+        if (!aluno) return [];
+        return await Reserva.find({ matriculas: aluno._id }).populate('matriculas');
     }
     async buscarReservaPorId(id: string){
         return await Reserva.findById(id);

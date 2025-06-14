@@ -73,9 +73,7 @@ const HorarioSemanal: React.FC = () => {
   const [dbReservations, setDbReservations] = useState<BackendReserva[]>([]);
   const [isLoadingReservations, setIsLoadingReservations] = useState(true);
   const [dbCourts, setDbCourts] = useState<any[]>([]);
-
-  // Usando a matrícula correta do aluno
-  const CURRENT_USER_MATRICULA = '2320313'; // Matrícula da Amanda Fonsêca
+  const [userMatricula, setUserMatricula] = useState<string | null>(null);
 
   interface TimeSlot {
     code: string;
@@ -88,6 +86,7 @@ const HorarioSemanal: React.FC = () => {
     name: string;
     sport: string;
     locationType: string;
+    _id?: string;
   }
 
   interface Day {
@@ -170,42 +169,60 @@ const HorarioSemanal: React.FC = () => {
     '19:00': 'N', '20:50': 'N'
   }), []);
 
-  // Verificar se a matrícula existe
+  // Buscar matrícula do usuário do localStorage
   useEffect(() => {
-    const verificarMatricula = async () => {
+    const userData = localStorage.getItem('@UniQuadra:user');
+    if (userData) {
+      const { matricula } = JSON.parse(userData);
+      setUserMatricula(matricula);
+    }
+  }, []);
+
+  // Verificar se a matrícula existe e carregar dados
+  useEffect(() => {
+    const verificarMatriculaECarregarDados = async () => {
+      if (!userMatricula) return;
+      
       try {
-        const response = await fetch(`http://localhost:3001/api/alunos/matricula/${CURRENT_USER_MATRICULA}`);
+        // Verificar matrícula
+        const response = await fetch(`http://localhost:3001/api/alunos/matricula/${userMatricula}`);
         if (!response.ok) {
           console.error('Matrícula não encontrada no sistema');
           alert('Sua matrícula não está cadastrada no sistema. Por favor, faça seu cadastro primeiro.');
+          return;
         }
-      } catch (error) {
-        console.error('Erro ao verificar matrícula:', error);
-      }
-    };
 
-    verificarMatricula();
-  }, []);
-
-  // Carregar quadras do MongoDB
-  useEffect(() => {
-    const fetchCourts = async () => {
-      try {
-        const response = await fetch('http://localhost:3001/api/quadras');
-        if (!response.ok) {
+        // Carregar quadras
+        const courtsResponse = await fetch('http://localhost:3001/api/quadras');
+        if (!courtsResponse.ok) {
           throw new Error('Erro ao buscar quadras');
         }
-        const quadras = await response.json();
-        setDbCourts(quadras);
+        const quadras = await courtsResponse.json();
+        console.log('Quadras carregadas do banco:', quadras);
+        
+        // Mapear as quadras do banco para o formato do frontend
+        const mappedCourts = quadras.map((q: any) => ({
+          ...q,
+          id: q._id, // Garantir que o ID está disponível como 'id'
+          _id: q._id // Manter o _id original também
+        }));
+        
+        console.log('Quadras mapeadas:', mappedCourts);
+        setDbCourts(mappedCourts);
+
+        // Carregar reservas
+        await fetchReservationsFromDb();
       } catch (error) {
-        console.error('Erro ao carregar quadras:', error);
+        console.error('Erro ao carregar dados:', error);
       }
     };
 
-    fetchCourts();
-  }, []);
+    verificarMatriculaECarregarDados();
+  }, [userMatricula]); // Executa quando userMatricula muda
 
   const fetchReservationsFromDb = async () => {
+    if (!userMatricula) return;
+    
     setIsLoadingReservations(true);
     try {
       const response = await fetch('http://localhost:3001/api/reservas'); 
@@ -218,7 +235,7 @@ const HorarioSemanal: React.FC = () => {
 
       const userReservasFromDb: Reserva[] = [];
       data.forEach(dbRes => {
-          if (dbRes.matriculas.includes(CURRENT_USER_MATRICULA)) {
+          if (dbRes.matriculas.includes(userMatricula)) {
               const resDate = new Date(dbRes.data);
               let dayKeyForFrontend: string | undefined;
               if (resDate.getDay() >= 1 && resDate.getDay() <= 5) { 
@@ -227,7 +244,6 @@ const HorarioSemanal: React.FC = () => {
                   return; 
               }
               
-              // CORREÇÃO: Usando template literal correto aqui
               const timeHourMinute = `${resDate.getUTCHours().toString().padStart(2, '0')}:${resDate.getUTCMinutes().toString().padStart(2, '0')}`;
               
               const correspondingDay = daysOfWeek.find(d => d.key === dayKeyForFrontend);
@@ -261,8 +277,10 @@ const HorarioSemanal: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchReservationsFromDb();
-  }, [selectedWeek]); 
+    if (userMatricula) {
+      fetchReservationsFromDb();
+    }
+  }, [selectedWeek]);
 
   const generateReservationKey = (timeSlot: TimeSlot, day: Day, court: Court, week: number): string => {
     // CORREÇÃO: Usando template literal correto aqui
@@ -294,8 +312,15 @@ const HorarioSemanal: React.FC = () => {
     const date = new Date(currentWeekStart);
     date.setDate(currentWeekStart.getDate() + dayIndex);
     const [startHour, startMinute] = timeSlot.time.split('-')[0].split(':');
-    date.setHours(Number(startHour), Number(startMinute), 0, 0);
-    return date;
+    
+    // Ajustar para o fuso horário local
+    const localDate = new Date(date);
+    localDate.setHours(Number(startHour), Number(startMinute), 0, 0);
+    
+    // Converter para UTC mantendo o mesmo horário local
+    const utcDate = new Date(localDate.getTime() - (localDate.getTimezoneOffset() * 60000));
+    
+    return utcDate;
   };
 
   const getCellStatus = (timeSlot: TimeSlot, day: Day, court: Court): 'available' | 'occupied' | 'reserved' | 'not-applicable' => {
@@ -339,7 +364,7 @@ const HorarioSemanal: React.FC = () => {
         const isSameTime = timeSlot.time.startsWith(dbTimeHourMinute);
         const isSameWeek = getWeekNumber(dbResDate) === getWeekNumber(targetDateUTC);
 
-        const isReservedBySomeoneElse = !dbRes.matriculas.includes(CURRENT_USER_MATRICULA);
+        const isReservedBySomeoneElse = userMatricula ? !dbRes.matriculas.includes(userMatricula) : true;
 
         return isSameCourt && isSameDay && isSameTime && isSameWeek && isReservedBySomeoneElse;
     });
@@ -359,13 +384,6 @@ const HorarioSemanal: React.FC = () => {
     const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
     return weekNo;
   }
-
-  const isTimeSlotApplicable = (timeSlot: TimeSlot, day: Day): boolean => {
-    const dayCode = day.key;
-    return (timeSlot.code.includes('246') && ['2', '4', '6'].includes(dayCode)) ||
-           (timeSlot.code.includes('35') && ['3', '5'].includes(dayCode));
-  };
-
 
   const getFilteredTimeSlots = (): TimeSlot[] => {
     return timeSlots.filter(slot => slot.label === selectedPeriod);
@@ -400,7 +418,7 @@ const HorarioSemanal: React.FC = () => {
                     const isSameDay = dbDayKeyForFrontend === day.key;
                     const isSameTime = timeSlot.time.startsWith(dbTimeHourMinute);
                     const isSameWeek = getWeekNumber(dbResDate) === getWeekNumber(getReservationDate(day, timeSlot, selectedWeek));
-                    const isMyReservationInDb = dbRes.matriculas.includes(CURRENT_USER_MATRICULA);
+                    const isMyReservationInDb = userMatricula ? dbRes.matriculas.includes(userMatricula) : false;
 
                     return isSameCourt && isSameDay && isSameTime && isSameWeek && isMyReservationInDb;
                 });
@@ -441,20 +459,41 @@ const HorarioSemanal: React.FC = () => {
       try {
           const reservationDate = getReservationDate(day, timeSlot, selectedWeek);
           
+          // Verificar se a data é futura
+          const now = new Date();
+          if (reservationDate <= now) {
+              throw new Error('A data da reserva deve ser futura');
+          }
+
           console.log('Quadras disponíveis:', dbCourts);
-          console.log('Procurando quadra para modalidade:', court.sport);
+          console.log('Procurando quadra com modalidade:', court.sport);
           
           // Encontrar a quadra correspondente no banco de dados
-          const dbCourt = dbCourts.find(q => q.modalidade === court.sport);
+          const dbCourt = dbCourts.find(q => {
+            console.log('Comparando com quadra do DB:', q);
+            // Mapear o esporte do frontend para a modalidade do backend
+            const modalidadeMap: { [key: string]: string } = {
+              'Campo de Futsal': 'Campo de Futsal',
+              'Basquete': 'Basquete',
+              'Vôlei': 'Vôlei',
+              'Campo de areia': 'Campo de areia',
+              'Tenis': 'Tenis',
+              'Natação': 'Natação',
+              'Atletismo': 'Atletismo'
+            };
+            return q.modalidade === modalidadeMap[court.sport];
+          });
           console.log('Quadra encontrada:', dbCourt);
           
           if (!dbCourt) {
-              throw new Error(`Quadra para modalidade ${court.sport} não encontrada no sistema`);
+              console.error('Quadras disponíveis no DB:', dbCourts);
+              console.error('Modalidade procurada:', court.sport);
+              throw new Error(`Quadra não encontrada no sistema`);
           }
 
-          console.log('Buscando aluno com matrícula:', CURRENT_USER_MATRICULA);
+          console.log('Buscando aluno com matrícula:', userMatricula);
           // Buscar o ID do aluno usando a matrícula
-          const alunoResponse = await fetch(`http://localhost:3001/api/alunos/matricula/${CURRENT_USER_MATRICULA}`);
+          const alunoResponse = await fetch(`http://localhost:3001/api/alunos/matricula/${userMatricula}`);
           if (!alunoResponse.ok) {
               throw new Error('Sua matrícula não está cadastrada no sistema. Por favor, faça seu cadastro primeiro.');
           }
@@ -471,52 +510,48 @@ const HorarioSemanal: React.FC = () => {
 
           console.log('ID da quadra:', quadraId);
           console.log('ID do aluno:', alunoId);
+          console.log('Data da reserva:', reservationDate.toISOString());
 
           const reservaData = {
               quadra: quadraId,
               data: reservationDate.toISOString(),
-              matriculas: [alunoId] // Usando o ObjectId do aluno como string
+              matriculas: [alunoId]
           };
-          
-          console.log('Dados da reserva que serão enviados:', reservaData);
+
+          console.log('Dados da reserva:', reservaData);
 
           const response = await fetch('http://localhost:3001/api/reservas', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
               },
-              body: JSON.stringify(reservaData),
+              body: JSON.stringify(reservaData)
           });
 
           if (!response.ok) {
               const errorData = await response.json();
-              console.error('Erro detalhado:', errorData);
-              throw new Error(`Falha ao criar reserva: ${errorData.error || response.status}`);
+              throw new Error(`Falha ao criar reserva: ${errorData.message || response.status}`);
           }
 
-          const responseData: BackendReserva = await response.json();
-          console.log('Resposta do servidor:', responseData);
+          const newReservation = await response.json();
+          console.log('Nova reserva criada:', newReservation);
 
-          setDbReservations(prevDbReservations => [...prevDbReservations, responseData]);
+          setDbReservations(prev => [...prev, newReservation]);
+          setReservations(prev => [...prev, {
+              timeSlot,
+              day,
+              court,
+              week: selectedWeek,
+              createdAt: newReservation.data
+          }]);
 
-          setReservations([
-              ...reservations,
-              {
-                  timeSlot,
-                  day,
-                  court,
-                  week: selectedWeek,
-                  createdAt: new Date().toISOString()
-              }
-          ]);
-
-          alert('Reserva confirmada com sucesso!');
           setShowReservationModal(false);
           setPendingReservation(null);
+          alert('Reserva criada com sucesso!');
 
       } catch (error: any) {
-          console.error('Erro ao confirmar reserva:', error.message || error);
-          alert(`Erro ao confirmar reserva: ${error.message || 'Tente novamente.'}`);
+          console.error('Erro detalhado:', error);
+          alert(`Erro ao confirmar reserva: ${error.message}`);
       }
     }
   };
